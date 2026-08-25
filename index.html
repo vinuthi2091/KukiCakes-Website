@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#fff9f5" />
+    <title>KukiCakes � Cakes made for your moments</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:ital,wght@0,600;0,700;1,600&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <div class="announcement">HANDCRAFTED IN COLOMBO · ORDER 48 HOURS AHEAD FOR CUSTOM CAKES</div>
+    <div class="nav-wrap">
+        <nav class="shell"><a class="brand" href="#home" data-page="home"><img class="brand-logo" src="docs/logo1_1.png" alt="KukiCakes"></a>
+            <div class="nav-links" id="navLinks"><a href="#home" data-page="home" class="active">Home</a><a
+                    href="#cakes" data-page="cakes">Our Cakes</a><a href="#about" data-scroll="about">Our Story</a><a
+                    href="#gallery" data-page="gallery">Gallery</a><a href="#order" data-scroll="order">Custom
+                    Orders</a></div>
+            <div class="nav-actions"><button class="icon-btn" id="searchBtn" aria-label="Search">⌕</button><button
+                    class="icon-btn" data-page="cart" aria-label="Shopping cart">🛒<span class="cart-count"
+                        id="cartCount">0</span></button><button class="btn btn-primary btn-sm nav-order"
+                    data-scroll="order">Order a cake</button><button class="icon-btn menu-btn" id="menuBtn"
+                    aria-label="Menu">☰</button></div>
+        </nav>
+    </div>
+    <main>
+        <div class="page active" id="home-page">
+            <header class="hero">
+                <div class="hero-grid">
+                    <div class="hero-copy">
+                        <div class="eyebrow">Baked for beautiful moments</div>
+                        <h1 class="title">A little magic<br>in every <em>slice.</em></h1>
+                        <p class="subtext">Handcrafted celebration cakes made with thoughtful flavours, beautiful
+                            details and a generous sprinkle of joy.</p>
+                        <div class="hero-actions"><button class="btn btn-primary" data-page="cakes">Explore our cakes
+                                →</button><button class="btn btn-ghost" data-scroll="order">Create something
+                                custom</button></div>
+                    </div>
+                    <div class="hero-visual">
+                        <div class="hero-main"><img
+                                src="https://images.unsplash.com/photo-1578985545062-69928b1d9587?auto=format&fit=crop&w=1200&q=90"
+                                alt="Elegant decorated cake"></div>
+                        <div class="float-card one"><strong>Freshly baked</strong>Every cake, every order</div>
+                        <div class="float-card two"><strong>Made with love</strong>Down to the last detail</div>
+                    </div>
+                </div>
+            </header>
+            <section class="about-section" id="about">
+                <div class="shell about-grid">
+                    <div class="image-stack">
+                        <img class="img-a" src="https://images.unsplash.com/photo-1556910103-1c02745aae4d?auto=format&fit=crop&w=900&q=85" alt="Baker decorating a cake">
+                        <img class="img-b" src="https://images.unsplash.com/photo-1486427944299-d1955d23e34d?auto=format&fit=crop&w=500&q=85" alt="Freshly baked cupcakes">
+                        <span class="seal">BAKED<br>WITH LOVE<br>IN COLOMBO</span>
+                    </div>
+                    <div>
+                        <div class="eyebrow">About KukiCakes</div>
+                        <h2 class="section-title">Small-batch cakes for big moments.</h2>
+                        <p class="subtext">KukiCakes is a homegrown cake studio in Colombo, created for people who believe the sweetest celebrations deserve something personal. Every cake is baked from scratch, finished by hand and designed around your story.</p>
+                        <div class="about-list">
+                            <div><span class="check">✓</span><span><b>Made from scratch</b><p>Fresh ingredients and carefully tested recipes in every batch.</p></span></div>
+                            <div><span class="check">✓</span><span><b>Thoughtful by design</b><p>Colours, flavours and details shaped around your celebration.</p></span></div>
+                            <div><span class="check">✓</span><span><b>Personal from start to finish</b><p>Friendly guidance from your first idea to the final delivery.</p></span></div>
+                        </div>
+                        <button class="btn btn-primary" data-scroll="order">Tell us about your celebration →</button>
+                    </div>
+                </div>
+            </section>
+            <section class="shell">
+                <div class="section-head">
+                    <div>
+                        <div class="eyebrow">Find your celebration</div>
+                        <h2 class="section-title">Cakes for every kind<br>of happy.</h2>
+                    </div>
+                    <p class="subtext">From tiny milestones to life’s biggest days, we make cakes that feel wonderfully,
+                        unmistakably yours.</p>
+                </div>
+                <div class="category-grid">
+                    <article class="category-card" data-page="cakes"><img
+                            src="https://images.unsplash.com/photo-1623428454614-abaf00244e52?auto=format&fit=crop&w=900&q=85"
+                            alt="Wedding cake">
+                        <div class="category-info">
+                            <h3>Wedding Cakes</h3><span class="round-arrow">↗</span>
+                        </div>
+                    </article>
+                    <article class="category-card" data-page="cakes"><img
+                            src="https://images.unsplash.com/photo-1558636508-e0db3814bd1d?auto=format&fit=crop&w=800&q=85"
+                            alt="Birthday cake">
+                        <div class="category-info">
+                            <h3>Birthday Cakes</h3><span class="round-arrow">↗</span>
+                        </div>
+                    </article>
+                    <article class="category-card" data-page="cakes"><img
+                            src="https://images.unsplash.com/photo-1563729784474-d77dbb933a9e?auto=format&fit=crop&w=800&q=85"
+                            alt="Cupcakes">
+                        <div class="category-info">
+                            <h3>Little Treats</h3><span class="round-arrow">↗</span>
+                        </div>
+                    </article>
+                </div>
+            </section>
+            <section class="products">
+                <div class="shell">
+                    <div class="section-head">
+                        <div>
+                            <div class="eyebrow">Most-loved cakes</div>
+                            <h2 class="section-title">Sweet favourites.</h2>
+                        </div><button class="btn btn-light" data-page="cakes">View all cakes →</button>
+                    </div>
+                    <div class="product-grid" id="featuredProducts"></div>
+                </div>
+            </section>
+            <section class="order-section" id="order">
+                <div class="shell order-box">
+                    <div>
+                        <div class="eyebrow" style="color:var(--peach)">Made just for you</div>
+                        <h2 class="section-title">Let’s create something beautiful.</h2>
+                        <p class="subtext">Tell us about your celebration. We’ll get back to you within one business
+                            day.</p>
+                    </div>
+                    <form class="order-form quote-form" id="quoteForm">
+                        <h3 class="form-title">Start your custom order</h3>
+                        <div class="form-grid">
+                            <div class="field"><label for="name">Your name *</label><input id="name" name="name" required placeholder="Full name"></div>
+                            <div class="field"><label for="phone">Phone / WhatsApp *</label><input id="phone" name="phone" required placeholder="+94 7X XXX XXXX"></div>
+                            <div class="field"><label for="email">Email address</label><input id="email" name="email" type="email" placeholder="you@example.com"></div>
+                            <div class="field"><label for="cakeType">Cake type *</label><select id="cakeType" name="cakeType" required><option value="">Select cake type</option><option>Wedding Cake</option><option>Birthday Cake</option><option>Anniversary Cake</option><option>Engagement Cake</option><option>Baby Shower Cake</option><option>Graduation Cake</option><option>Other Celebration Cake</option></select></div>
+                            <div class="field"><label for="eventDate">Event date *</label><input id="eventDate" name="eventDate" type="date" required></div>
+                            <div class="field"><label for="servings">Number of servings</label><input id="servings" name="servings" type="number" min="4" placeholder="e.g. 30"></div>
+                            <div class="field"><label for="flavor">Preferred flavor</label><select id="flavor" name="flavor"><option>Not sure yet</option><option>Vanilla bean</option><option>Chocolate</option><option>Red velvet</option><option>Coffee</option><option>Butter cake</option></select></div>
+                            <div class="field"><label for="budget">Budget range</label><select id="budget" name="budget"><option>Prefer not to say</option><option>Below Rs. 10,000</option><option>Rs. 10,000–25,000</option><option>Rs. 25,000–50,000</option><option>Above Rs. 50,000</option></select></div>
+                            <div class="field full"><label for="design">Design, colors & cake message</label><textarea id="design" name="design" placeholder="Tell us about your theme, colors, message and other ideas..."></textarea></div>
+                            <div class="field full"><label for="inspiration">Inspiration image</label><div class="upload"><span>Upload a reference photo or sketch</span><input id="inspiration" name="inspiration" type="file" accept="image/*"></div></div>
+                        </div>
+                        <button class="btn btn-primary" type="submit">Send my cake inquiry →</button>
+                        <div class="success" id="successMessage" role="status">Thank you! Your cake inquiry has been received. KukiCakes will contact you shortly.</div>
+                    </form>
+                </div>
+            </section>
+            <section class="testimonials">
+                <div class="shell">
+                    <div class="center">
+                        <div class="eyebrow">Kind words</div>
+                        <h2 class="section-title">The sweetest reviews.</h2>
+                    </div>
+                    <div class="testimonial-grid">
+                        <article class="quote"><div class="stars">★★★★★</div><p>“The cake looked exactly like my Pinterest dream and tasted even better. Every guest asked who made it!”</p><div class="person"><img src="https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=100&q=80" alt="Amaya P."><span><b>Amaya P.</b><span>Wedding cake</span></span></div></article>
+                        <article class="quote"><div class="stars">★★★★★</div><p>“Kuki made the whole process effortless. The tiny hand-painted flowers were pure magic.”</p><div class="person"><img src="https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=crop&w=100&q=80" alt="Nethmi R."><span><b>Nethmi R.</b><span>21st birthday cake</span></span></div></article>
+                        <article class="quote"><div class="stars">★★★★★</div><p>“Perfectly balanced, not too sweet, and so beautiful I almost did not want to cut it. Almost!”</p><div class="person"><img src="https://images.unsplash.com/photo-1531123897727-8f129e1688ce?auto=format&fit=crop&w=100&q=80" alt="Shenali D."><span><b>Shenali D.</b><span>Baby shower cake</span></span></div></article>
+                        <article class="quote"><div class="stars">★★★★★</div><p>“Our anniversary cake was elegant, fresh and full of flavour. It made our dinner feel even more special.”</p><div class="person"><img src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=100&q=80" alt="Dilani S."><span><b>Dilani S.</b><span>Anniversary cake</span></span></div></article>
+                        <article class="quote"><div class="stars">★★★★★</div><p>“The chocolate layers were rich without being heavy, and the delivery arrived beautifully packed.”</p><div class="person"><img src="https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=100&q=80" alt="Ravin K."><span><b>Ravin K.</b><span>Birthday cake</span></span></div></article>
+                        <article class="quote"><div class="stars">★★★★★</div><p>“From the first message to the final slice, KukiCakes understood our idea and made it feel completely ours.”</p><div class="person"><img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=100&q=80" alt="Tharushi M."><span><b>Tharushi M.</b><span>Engagement cake</span></span></div></article>
+                    </div>
+                </div>
+            </section>
+        </div>
+        <div class="page" id="cakes-page">
+            <div class="page-hero shell">
+                <div class="eyebrow">The cake collection</div>
+                <h1 class="section-title">Pick your perfect slice.</h1>
+                <p class="subtext">Our signature cakes, ready to personalise for your celebration.</p>
+                <div class="filter-row"><button class="filter active" data-filter="all">All cakes</button><button
+                        class="filter" data-filter="birthday">Birthday</button><button class="filter"
+                        data-filter="wedding">Wedding</button><button class="filter"
+                        data-filter="minimal">Minimal</button><button class="filter"
+                        data-filter="floral">Floral</button></div>
+            </div>
+            <div class="shell">
+                <div class="product-grid" id="allProducts"></div>
+            </div>
+        </div>
+        <div class="page" id="gallery-page">
+            <div class="page-hero shell">
+                <div class="eyebrow">Fresh from our studio</div>
+                <h1 class="section-title">Our gallery of happy.</h1>
+                <p class="subtext">A collection of cakes, details and celebrations we’ve loved creating.</p>
+            </div>
+            <div class="gallery-grid shell" id="galleryGrid"></div>
+        </div>
+        <div class="page" id="cart-page">
+            <div class="page-hero shell">
+                <div class="eyebrow">Almost cake time</div>
+                <h1 class="section-title">Your sweet selection.</h1>
+            </div>
+            <div class="cart-layout shell">
+                <div class="cart-items" id="cartItems"></div>
+                <aside class="summary">
+                    <h3>Order summary</h3>
+                    <div class="summary-row"><span>Subtotal</span><b id="subtotal">Rs. 0</b></div>
+                    <div class="summary-row summary-total"><span>Estimated total</span><span id="total">Rs. 0</span>
+                    </div><button class="btn btn-primary" id="checkoutBtn">Continue to checkout →</button>
+                </aside>
+            </div>
+        </div>
+        <div class="page" id="admin-page">
+            <div class="admin shell">
+                <div class="admin-shell">
+                    <aside class="admin-side">
+                        <div class="brand"><img class="brand-logo" src="docs/logo1_1.png" alt="KukiCakes"></div>
+                        <div class="admin-menu"><button class="active">▦ Dashboard</button><button>▤
+                                Orders</button><button>♢ Products</button></div>
+                    </aside>
+                    <div class="admin-main">
+                        <div class="admin-head">
+                            <div><small>Tuesday, 25 August</small>
+                                <h2>Good morning, Kuki.</h2>
+                            </div>
+                        </div>
+                        <div class="stat-grid">
+                            <div class="stat"><span>TOTAL ORDERS</span><b>125</b></div>
+                            <div class="stat"><span>UPCOMING</span><b>45</b></div>
+                            <div class="stat"><span>CUSTOMERS</span><b>230</b></div>
+                            <div class="stat"><span>REVENUE</span><b>Rs. 490K</b></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+    <footer>
+        <div class="shell">
+            <div class="footer-grid">
+                <div class="footer-about"><a class="brand" href="#home" data-page="home"><img class="brand-logo" src="docs/logo1_1.png" alt="KukiCakes"></a>
+                    <p>Thoughtfully designed, joyfully made celebration cakes from our little studio in Colombo.</p>
+                </div>
+                <div class="footer-col">
+                    <h4>Quick links</h4><a data-page="cakes">Our cakes</a><a data-scroll="about">Our story</a><a
+                        data-page="gallery">Gallery</a>
+                </div>
+                <div class="footer-col">
+                    <h4>Visit & say hello</h4>
+                    <p>Colombo, Sri Lanka</p><a href="tel:+94771234567">+94 77 123 4567</a><a
+                        href="mailto:hello@kukicakes.lk">hello@kukicakes.lk</a>
+                </div>
+            </div>
+            <div class="copyright"><span>© 2026 KukiCakes. Baked with love.</span><a data-page="admin">Admin</a></div>
+        </div>
+    </footer>
+    <div class="modal" id="productModal">
+        <div class="modal-card"><button class="modal-close" id="modalClose">×</button>
+            <div class="modal-img"><img id="modalImage" alt="Cake"></div>
+            <div class="modal-info">
+                <div class="eyebrow">Signature cake</div>
+                <h2 id="modalTitle">Cake name</h2>
+                <p class="subtext" id="modalDesc">Cake description</p>
+                <h3 id="modalPrice">Rs. 0</h3><button class="btn btn-primary" style="width:100%" id="modalAdd">Add to my
+                    selection →</button>
+            </div>
+        </div>
+    </div>
+    <div class="toast" id="toast">Added to your selection</div>
+    <script src="js/data.js"></script>
+    <script src="js/site.js"></script>
+</body>
+
+</html>

@@ -1,0 +1,87 @@
+:root {
+    --ink: #34241f;
+    --muted: #786761;
+    --cream: #fff9f5;
+    --paper: #fffefd;
+    --peach: #f5c9b8;
+    --peach-2: #fde8df;
+    --berry: #9e4053;
+    --berry-dark: #7d2d3f;
+    --sage: #9caf91;
+    --line: #eadfd9;
+    --shadow: 0 20px 60px rgba(73, 42, 32, .12);
+    --radius: 24px;
+    --serif: "Playfair Display", serif;
+    --sans: "DM Sans", sans-serif
+}
+
+* {
+    box-sizing: border-box
+}
+
+html {
+    scroll-behavior: smooth
+}
+
+body {
+    margin: 0;
+    background: var(--cream);
+    color: var(--ink);
+    font-family: var(--sans);
+    line-height: 1.55
+}
+
+button,
+input,
+select,
+textarea {
+    font: inherit
+}
+
+button,
+a {
+    cursor: pointer
+}
+
+a {
+    color: inherit;
+    text-decoration: none
+}
+
+img {
+    max-width: 100%;
+    display: block
+}
+
+::selection {
+    background: var(--peach);
+    color: var(--ink)
+}
+
+.shell {
+    width: min(1180px, calc(100% - 40px));
+    margin: auto
+}
+
+.page {
+    display: none;
+    min-height: 70vh
+}
+
+.page.active {
+    display: block;
+    animation: fade .35s ease
+}
+
+@keyframes fade {
+    from {
+        opacity: 0;
+        transform: translateY(8px)
+    }
+
+    to {
+        opacity: 1;
+        transform: none
+    }
+}
+

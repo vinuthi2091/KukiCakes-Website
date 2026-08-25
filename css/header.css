@@ -1,0 +1,223 @@
+.announcement {
+    background: var(--ink);
+    color: #fff;
+    text-align: center;
+    font-size: 12px;
+    letter-spacing: .08em;
+    padding: 8px 16px
+}
+
+.nav-wrap {
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    background: rgba(255, 249, 245, .88);
+    backdrop-filter: blur(16px);
+    border-bottom: 1px solid rgba(234, 223, 217, .75)
+}
+
+nav {
+    height: 78px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 24px
+}
+
+.brand {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font: 700 25px var(--serif)
+}
+
+.brand-logo {
+    width: 170px;
+    height: 58px;
+    object-fit: contain;
+    object-position: left center
+}
+
+.brand-mark {
+    width: 38px;
+    height: 38px;
+    border-radius: 50% 50% 45% 55%;
+    display: grid;
+    place-items: center;
+    background: var(--berry);
+    color: white;
+    transform: rotate(-6deg);
+    box-shadow: inset 0 0 0 4px rgba(255, 255, 255, .22)
+}
+
+.brand-mark span {
+    transform: rotate(6deg);
+    font: 700 17px var(--serif)
+}
+
+.nav-links {
+    display: flex;
+    align-items: center;
+    gap: 30px;
+    font-size: 14px;
+    font-weight: 600
+}
+
+.nav-links a {
+    position: relative
+}
+
+.nav-links a:after {
+    content: "";
+    position: absolute;
+    left: 0;
+    right: 100%;
+    bottom: -8px;
+    height: 2px;
+    background: var(--berry);
+    transition: .25s
+}
+
+.nav-links a:hover:after,
+.nav-links a.active:after {
+    right: 0
+}
+
+.nav-actions {
+    display: flex;
+    align-items: center;
+    gap: 10px
+}
+
+.icon-btn {
+    border: 1px solid var(--line);
+    background: rgba(255, 255, 255, .7);
+    height: 42px;
+    min-width: 42px;
+    padding: 0 12px;
+    border-radius: 99px;
+    display: grid;
+    place-items: center;
+    color: var(--ink);
+    position: relative
+}
+
+.cart-count {
+    position: absolute;
+    right: -4px;
+    top: -5px;
+    display: grid;
+    place-items: center;
+    min-width: 19px;
+    height: 19px;
+    padding: 0 5px;
+    border-radius: 20px;
+    background: var(--berry);
+    color: #fff;
+    font-size: 10px;
+    font-weight: 700
+}
+
+.menu-btn {
+    display: none
+}
+
+.btn {
+    border: 0;
+    border-radius: 99px;
+    padding: 14px 23px;
+    font-weight: 700;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 9px;
+    transition: .25s
+}
+
+.btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 24px rgba(126, 45, 63, .18)
+}
+
+.btn-primary {
+    background: var(--berry);
+    color: white
+}
+
+.btn-primary:hover {
+    background: var(--berry-dark)
+}
+
+.btn-light {
+    background: #fff;
+    color: var(--ink);
+    border: 1px solid var(--line)
+}
+
+.btn-ghost {
+    background: transparent;
+    border: 1px solid rgba(52, 36, 31, .28)
+}
+
+.btn-sm {
+    padding: 10px 17px;
+    font-size: 13px
+}
+
+.eyebrow {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    text-transform: uppercase;
+    letter-spacing: .18em;
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--berry)
+}
+
+.eyebrow:before {
+    content: "";
+    width: 28px;
+    height: 1px;
+    background: currentColor
+}
+
+.title {
+    font: 600 clamp(38px, 5.5vw, 72px)/1.02 var(--serif);
+    letter-spacing: -.035em;
+    margin: 18px 0
+}
+
+.section-title {
+    font: 600 clamp(32px, 4vw, 52px)/1.08 var(--serif);
+    letter-spacing: -.025em;
+    margin: 12px 0
+}
+
+.subtext {
+    font-size: 17px;
+    color: var(--muted);
+    max-width: 580px
+}
+
+.center {
+    text-align: center
+}
+
+.center .eyebrow,
+.center .subtext {
+    margin-left: auto;
+    margin-right: auto
+}
+
+.center .eyebrow {
+    justify-content: center
+}
+
+.center .eyebrow:after {
+    content: "";
+    width: 28px;
+    height: 1px;
+    background: currentColor
+}
+
