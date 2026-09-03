@@ -14,8 +14,8 @@ async function startApp() {
         loadComponent('site-modal', 'modal'),
         loadComponent('site-toast', 'toast')
     ]);
+    // Load site.js after components are loaded
     const script = document.createElement('script');
-    script.type = 'module';
     script.src = 'js/site.js';
     document.body.appendChild(script);
 }

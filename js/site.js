@@ -31,6 +31,8 @@ function openProduct(id) {
 	$('#modalPrice').textContent = `From ${money(activeProduct.price)}`;
 	$('#productModal').classList.add('open');
 	document.body.style.overflow = 'hidden';
+	// Reset weight select to first option
+	if ($('#weightSelect')) $('#weightSelect').value = '500g';
 }
 
 function closeModal() { $('#productModal').classList.remove('open'); document.body.style.overflow = ''; }
@@ -43,7 +45,7 @@ function saveCart() {
 
 function renderCart() {
 	const box = $('#cartItems');
-	box.innerHTML = cart.length ? cart.map(item => `<article class="cart-item"><img src="${item.img}" alt="${item.name}"><div><h3>${item.name}</h3><p>6” · Vanilla berry · Serves 10</p><div class="qty"><button data-qty="-1" data-id="${item.id}">−</button><b>${item.qty}</b><button data-qty="1" data-id="${item.id}">+</button></div></div><div class="item-price"><b>${money(item.price * item.qty)}</b><button class="remove" data-remove="${item.id}">Remove</button></div></article>`).join('') : '<div class="empty-cart"><div>🎂</div><h3>Your cake box is empty</h3><p class="subtext">A celebration this sweet deserves a cake.</p><button class="btn btn-primary" data-page="cakes">Explore our cakes</button></div>';
+	box.innerHTML = cart.length ? cart.map(item => `<article class="cart-item"><img src="${item.img}" alt="${item.name}"><div><h3>${item.name}</h3><p>6" · Vanilla berry · Weight: ${item.weight || '500g'} · Serves 10</p><div class="qty"><button data-qty="-1" data-id="${item.id}" data-weight="${item.weight || '500g'}">−</button><b>${item.qty}</b><button data-qty="1" data-id="${item.id}" data-weight="${item.weight || '500g'}">+</button></div></div><div class="item-price"><b>${money(item.price * item.qty)}</b><button class="remove" data-remove="${item.id}" data-weight="${item.weight || '500g'}">Remove</button></div></article>`).join('') : '<div class="empty-cart"><div>🎂</div><h3>Your cake box is empty</h3><p class="subtext">A celebration this sweet deserves a cake.</p><button class="btn btn-primary" data-page="cakes">Explore our cakes</button></div>';
 	const subtotal = cart.reduce((total, item) => total + item.price * item.qty, 0);
 	$('#subtotal').textContent = money(subtotal);
 	$('#total').textContent = money(subtotal);
@@ -59,16 +61,43 @@ document.addEventListener('click', event => {
 	const productLink = event.target.closest('[data-product]');
 	if (productLink && !event.target.closest('.heart')) openProduct(Number(productLink.dataset.product));
 	const quantity = event.target.closest('[data-qty]');
-	if (quantity) { const item = cart.find(entry => entry.id === Number(quantity.dataset.id)); if (item) { item.qty += Number(quantity.dataset.qty); if (item.qty < 1) cart = cart.filter(entry => entry.id !== item.id); saveCart(); } }
+	if (quantity) { 
+		const itemId = Number(quantity.dataset.id);
+		const weight = quantity.dataset.weight || '500g';
+		const item = cart.find(entry => entry.id === itemId && entry.weight === weight); 
+		if (item) { 
+			item.qty += Number(quantity.dataset.qty); 
+			if (item.qty < 1) cart = cart.filter(entry => !(entry.id === itemId && entry.weight === weight)); 
+			saveCart(); 
+		} 
+	}
 	const remove = event.target.closest('[data-remove]');
-	if (remove) { cart = cart.filter(item => item.id !== Number(remove.dataset.remove)); saveCart(); }
+	if (remove) { 
+		const itemId = Number(remove.dataset.remove);
+		const weight = remove.dataset.weight || '500g';
+		cart = cart.filter(item => !(item.id === itemId && item.weight === weight)); 
+		saveCart(); 
+	}
 });
 
 $('#menuBtn').onclick = () => $('#navLinks').classList.toggle('open');
 $('#searchBtn').onclick = () => showToast('Search is ready for your future catalogue');
 $('#modalClose').onclick = closeModal;
 $('#productModal').onclick = event => { if (event.target.id === 'productModal') closeModal(); };
-$('#modalAdd').onclick = () => { const existing = cart.find(item => item.id === activeProduct.id); existing ? existing.qty++ : cart.push({ ...activeProduct, qty: 1 }); saveCart(); closeModal(); showToast(`${activeProduct.name} added to your selection`); };
+$('#modalAdd').onclick = () => { 
+	// Get selected weight from dropdown
+	const selectedWeight = $('#weightSelect').value || '500g';
+	
+	const existing = cart.find(item => item.id === activeProduct.id && item.weight === selectedWeight); 
+	if (existing) {
+		existing.qty++; 
+	} else {
+		cart.push({ ...activeProduct, qty: 1, weight: selectedWeight }); 
+	}
+	saveCart(); 
+	closeModal(); 
+	showToast(`${activeProduct.name} (${selectedWeight}) added to your selection`); 
+};
 $('#quoteForm').onsubmit = event => {
 	event.preventDefault();
 	$('#successMessage').classList.add('show');
