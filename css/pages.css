@@ -80,7 +80,8 @@ footer {
 
 .page-hero {
     padding: 70px 0 45px;
-    text-align: center
+    text-align: center;
+    position: relative
 }
 
 .page-hero p {
@@ -102,6 +103,26 @@ footer {
     border-radius: 99px;
     font-size: 12px;
     font-weight: 700
+}
+
+.sort-control {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 12px;
+    font-weight: 700;
+    position: absolute;
+    top: 0;
+    right: 0
+}
+
+.sort-control select {
+    border: 1px solid var(--line);
+    border-radius: 99px;
+    padding: 10px 14px;
+    background: #fff;
+    color: var(--ink);
+    font: inherit
 }
 
 .filter.active,

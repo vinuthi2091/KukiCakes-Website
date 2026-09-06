@@ -8,9 +8,18 @@ function productCard(product) {
 	return `<article class="product-card" data-cat="${product.cat}"><div class="product-img" data-product="${product.id}"><img src="${product.img}" alt="${product.name}"><span class="badge">${product.badge}</span><button class="heart" aria-label="Save">♡</button></div><div class="product-info"><h3>${product.name}</h3><div class="product-meta"><span>From</span><span class="price">${money(product.price)}</span></div><button class="add-btn" data-product="${product.id}">Choose this cake</button></div></article>`;
 }
 
+function renderAllProducts() {
+	const activeFilter = document.querySelector('.filter.active')?.dataset.filter || 'all';
+	const sort = $('#priceSort')?.value || 'default';
+	const visibleProducts = products.filter(product => activeFilter === 'all' || product.cat.includes(activeFilter));
+	if (sort === 'low-high') visibleProducts.sort((first, second) => first.price - second.price);
+	if (sort === 'high-low') visibleProducts.sort((first, second) => second.price - first.price);
+	$('#allProducts').innerHTML = visibleProducts.map(productCard).join('');
+}
+
 function renderCatalog() {
 	$('#featuredProducts').innerHTML = products.slice(0, 4).map(productCard).join('');
-	$('#allProducts').innerHTML = products.map(productCard).join('');
+	renderAllProducts();
 	$('#galleryGrid').innerHTML = gallery.map(item => `<article class="gallery-item"><img src="${item.img}" alt="${item.title}"><div class="gallery-overlay"><b>${item.title}</b></div></article>`).join('');
 }
 
@@ -106,7 +115,8 @@ $('#quoteForm').onsubmit = event => {
 };
 $('#checkoutBtn').onclick = () => showToast(cart.length ? 'Checkout details would open next' : 'Add a cake before checking out');
 if ($('#newsletter')) $('#newsletter').onsubmit = event => { event.preventDefault(); showToast('You are on the sweet list!'); };
-document.querySelectorAll('.filter[data-filter]').forEach(button => button.onclick = () => { document.querySelectorAll('.filter[data-filter]').forEach(item => item.classList.remove('active')); button.classList.add('active'); document.querySelectorAll('#allProducts .product-card').forEach(card => card.style.display = button.dataset.filter === 'all' || card.dataset.cat.includes(button.dataset.filter) ? '' : 'none'); });
+document.querySelectorAll('.filter[data-filter]').forEach(button => button.onclick = () => { document.querySelectorAll('.filter[data-filter]').forEach(item => item.classList.remove('active')); button.classList.add('active'); renderAllProducts(); });
+if ($('#priceSort')) $('#priceSort').onchange = renderAllProducts;
 document.querySelectorAll('.chips').forEach(group => group.onclick = event => { if (event.target.classList.contains('chip')) { group.querySelectorAll('.chip').forEach(chip => chip.classList.remove('active')); event.target.classList.add('active'); } });
 document.addEventListener('keydown', event => { if (event.key === 'Escape') closeModal(); });
 

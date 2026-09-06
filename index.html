@@ -16,16 +16,7 @@
 
 <body>
     <div class="announcement">HANDCRAFTED IN COLOMBO · ORDER 48 HOURS AHEAD FOR CUSTOM CAKES</div>
-    <div class="nav-wrap" id="site-header"></div>
-    <main id="app"></main>
-    <footer id="site-footer"></footer>
-    <div id="site-modal"></div>
-    <div id="site-toast"></div>
-    <script src="js/data.js"></script>
-    <script src="js/app.js"></script>
-</body>
-
-</html>
+    <div class="nav-wrap">
         <nav class="shell"><a class="brand" href="#home" data-page="home"><img class="brand-logo" src="docs/logo1_1.png" alt="KukiCakes"></a>
             <div class="nav-links" id="navLinks"><a href="#home" data-page="home" class="active">Home</a><a
                     href="#cakes" data-page="cakes">Our Cakes</a><a href="#about" data-scroll="about">Our Story</a><a
@@ -138,7 +129,7 @@
                             <div class="field"><label for="name">Your name *</label><input id="name" name="name" required placeholder="Full name"></div>
                             <div class="field"><label for="phone">Phone / WhatsApp *</label><input id="phone" name="phone" required placeholder="+94 7X XXX XXXX"></div>
                             <div class="field"><label for="email">Email address</label><input id="email" name="email" type="email" placeholder="you@example.com"></div>
-                            <div class="field"><label for="cakeType">Cake type *</label><select id="cakeType" name="cakeType" required><option value="">Select cake type</option><option>Wedding Cake</option><option>Birthday Cake</option><option>Anniversary Cake</option><option>Engagement Cake</option><option>Baby Shower Cake</option><option>Graduation Cake</option><option>Other Celebration Cake</option></select></div>
+                            <div class="field"><label for="cakeType">Cake type *</label><select id="cakeType" name="cakeType" required><option value="">Select cake type</option><option>Anniversary Cake</option><option>Birthday Cake</option><option>Christmas Cake</option><option>Cupcake</option><option>Engagement Cake</option><option>Graduation Cake</option><option>Number Cake</option><option>Party Cake</option><option>Wedding Cake</option></select></div>
                             <div class="field"><label for="eventDate">Event date *</label><input id="eventDate" name="eventDate" type="date" required></div>
                             <div class="field"><label for="servings">Number of servings</label><input id="servings" name="servings" type="number" min="4" placeholder="e.g. 30"></div>
                             <div class="field"><label for="flavor">Preferred flavor</label><select id="flavor" name="flavor"><option>Not sure yet</option><option>Vanilla bean</option><option>Chocolate</option><option>Red velvet</option><option>Coffee</option><option>Butter cake</option></select></div>
@@ -174,10 +165,23 @@
                 <h1 class="section-title">Pick your perfect slice.</h1>
                 <p class="subtext">Our signature cakes, ready to personalise for your celebration.</p>
                 <div class="filter-row"><button class="filter active" data-filter="all">All cakes</button><button
-                        class="filter" data-filter="birthday">Birthday</button><button class="filter"
-                        data-filter="wedding">Wedding</button><button class="filter"
-                        data-filter="minimal">Minimal</button><button class="filter"
-                        data-filter="floral">Floral</button></div>
+                    class="filter" data-filter="anniversary">Anniversary</button><button class="filter"
+                    data-filter="birthday">Birthday</button><button class="filter"
+                    data-filter="christmas">Christmas</button><button class="filter"
+                    data-filter="cupcake">Cupcake</button><button class="filter"
+                    data-filter="engagement">Engagement</button><button class="filter"
+                    data-filter="graduation">Graduation</button><button class="filter"
+                    data-filter="number">Number cakes</button><button class="filter"
+                    data-filter="party">Party</button><button class="filter"
+                    data-filter="wedding">Wedding</button>
+                    <label class="sort-control" for="priceSort">Sort by
+                        <select id="priceSort">
+                            <option value="default">Featured</option>
+                            <option value="low-high">Price: Low to high</option>
+                            <option value="high-low">Price: High to low</option>
+                        </select>
+                    </label>
+                </div>
             </div>
             <div class="shell">
                 <div class="product-grid" id="allProducts"></div>
@@ -243,7 +247,7 @@
                 </div>
                 <div class="footer-col">
                     <h4>Visit & say hello</h4>
-                    <p>Colombo, Sri Lanka</p><a href="tel:+94771234567">+94 72 978 3408</a><a
+                    <p>Colombo, Sri Lanka</p><a href="tel:+94771234567">+94 77 123 4567</a><a
                         href="mailto:hello@kukicakes.lk">hello@kukicakes.lk</a>
                 </div>
             </div>
@@ -258,18 +262,12 @@
                 <h2 id="modalTitle">Cake name</h2>
                 <p class="subtext" id="modalDesc">Cake description</p>
                 <h3 id="modalPrice">Rs. 0</h3>
-                <div class="choice-group">
-                    <label>Choose your weight</label>
-                    <select id="weightSelect" style="width:100%; padding:10px; border:2px solid var(--berry); border-radius:4px; font-size:14px;">
-                        <option value="500g">500g</option>
-                        <option value="750g">750g</option>
-                        <option value="1kg">1kg</option>
-                        <option value="1.5kg">1.5kg</option>
-                        <option value="2kg">2kg</option>
-                    </select>
-                </div>
-                <button class="btn btn-primary" style="width:100%" id="modalAdd">Add to my selection →</button>
-                <p class="form-note">We'll confirm your date and custom details before payment.</p>
+                <div class="choice-group"><label>Choose your weight</label><select id="weightSelect"
+                        style="width:100%; padding:10px; border:2px solid var(--berry); border-radius:4px; font-size:14px;">
+                    <option value="500g">500g</option><option value="750g">750g</option><option value="1kg">1kg</option>
+                    <option value="1.5kg">1.5kg</option><option value="2kg">2kg</option>
+                </select></div><button class="btn btn-primary" style="width:100%" id="modalAdd">Add to my
+                    selection →</button>
             </div>
         </div>
     </div>

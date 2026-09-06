@@ -120,6 +120,11 @@
         font-size: 10px
     }
 
+    .sort-control {
+        position: static;
+        margin: 8px auto 0
+    }
+
     .brand {
         font-size: 21px
     }

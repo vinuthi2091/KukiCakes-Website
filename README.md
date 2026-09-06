@@ -11,3 +11,5 @@ A beautiful and responsive cake shop website for browsing and ordering delicious
 ## Run locally
 
 Open `index.html` directly in a browser. No server, package, library, or framework is required.
+
+You can also use VS Code Live Server for development by right-clicking `index.html` and choosing **Open with Live Server**.

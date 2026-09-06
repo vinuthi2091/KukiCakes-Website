@@ -21,6 +21,6 @@ async function startApp() {
 }
 
 startApp().catch(error => {
-    document.getElementById('app').textContent = 'Unable to load the KukiCakes website.';
+    document.getElementById('app').textContent = 'Unable to load the website. Please open it through a local server, such as VS Code Live Server.';
     console.error(error);
 });
