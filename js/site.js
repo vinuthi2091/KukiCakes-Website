@@ -6,7 +6,7 @@ const money = value => `Rs. ${value.toLocaleString()}`;
 const $ = selector => document.querySelector(selector);
 
 function productCard(product) {
-	return `<article class="product-card" data-cat="${product.cat}"><div class="product-img" data-product="${product.id}"><img src="${product.img}" alt="${product.name}"><span class="badge">${product.badge}</span><button class="heart" aria-label="Save">♡</button></div><div class="product-info"><h3>${product.name}</h3><div class="product-meta"><span>From</span><span class="price">${money(product.price)}</span></div><button class="add-btn" data-product="${product.id}">Choose this cake</button></div></article>`;
+	return `<article class="product-card" data-cat="${product.cat}"><div class="product-img" data-product="${product.id}"><img src="${product.img}" alt="${product.name}"><span class="badge">${product.badge}</span></div><div class="product-info"><h3>${product.name}</h3><div class="product-meta"><span>From</span><span class="price">${money(product.price)}</span></div><button class="add-btn" data-product="${product.id}">Choose this cake</button></div></article>`;
 }
 
 function renderAllProducts() {
@@ -101,7 +101,7 @@ document.addEventListener('click', event => {
 	const scrollLink = event.target.closest('[data-scroll]');
 	if (scrollLink) { event.preventDefault(); goPage('home'); setTimeout(() => document.getElementById(scrollLink.dataset.scroll)?.scrollIntoView({ behavior: 'smooth' }), 100); return; }
 	const productLink = event.target.closest('[data-product]');
-	if (productLink && !event.target.closest('.heart')) openProduct(Number(productLink.dataset.product));
+	if (productLink) openProduct(Number(productLink.dataset.product));
 	const quantity = event.target.closest('[data-qty]');
 	if (quantity) { 
 		const itemId = Number(quantity.dataset.id);

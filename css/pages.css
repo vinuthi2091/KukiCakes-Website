@@ -6,14 +6,26 @@ footer {
 
 .footer-grid {
     display: grid;
-    grid-template-columns: 1.4fr .7fr .7fr 1fr;
-    gap: 55px
+    grid-template-columns: minmax(240px, 1.35fr) minmax(125px, .75fr) minmax(190px, 1fr) minmax(220px, 1.1fr);
+    gap: clamp(28px, 4vw, 58px);
+    align-items: start
+}
+
+.footer-about,
+.footer-col {
+    min-width: 0
+}
+
+.footer-about .brand {
+    display: inline-flex;
+    align-items: center
 }
 
 .footer-about p {
     color: #bfaeaa;
     font-size: 13px;
-    max-width: 330px
+    max-width: 330px;
+    margin: 18px 0 0
 }
 
 .socials {
@@ -34,7 +46,7 @@ footer {
 
 .footer-col h4 {
     font: 600 17px var(--serif);
-    margin: 0 0 18px
+    margin: 3px 0 18px
 }
 
 .footer-col a,
@@ -42,12 +54,18 @@ footer {
     display: block;
     color: #c9bbb7;
     font-size: 12px;
-    margin: 9px 0
+    margin: 0 0 10px;
+    line-height: 1.5
+}
+
+.footer-col p:last-of-type {
+    margin-bottom: 0
 }
 
 .newsletter {
     display: flex;
-    margin-top: 15px
+    width: 100%;
+    margin-top: 16px
 }
 
 .newsletter input {
@@ -71,6 +89,8 @@ footer {
 .copyright {
     display: flex;
     justify-content: space-between;
+    align-items: center;
+    gap: 20px;
     color: #887773;
     font-size: 11px;
     border-top: 1px solid #493936;

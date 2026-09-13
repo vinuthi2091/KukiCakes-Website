@@ -58,6 +58,10 @@
         grid-template-columns: 1fr 1fr
     }
 
+    .footer-about {
+        grid-column: 1 / -1
+    }
+
     .gallery-grid {
         grid-template-columns: repeat(3, 1fr)
     }
@@ -294,7 +298,12 @@
 
     .footer-grid {
         grid-template-columns: 1fr;
-        gap: 35px
+        gap: 28px;
+        text-align: left
+    }
+
+    .footer-about {
+        grid-column: auto
     }
 
     .copyright {
