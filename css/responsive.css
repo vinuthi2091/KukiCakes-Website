@@ -66,6 +66,15 @@
         grid-template-columns: 1fr
     }
 
+    .checkout-grid {
+        grid-template-columns: 1fr
+    }
+
+    .checkout-side {
+        grid-template-columns: 1fr 1fr;
+        align-items: start
+    }
+
     .summary {
         position: static
     }
@@ -120,9 +129,34 @@
         font-size: 10px
     }
 
+    .search-inner {
+        gap: 9px;
+        min-height: 58px
+    }
+
+    .search-inner label {
+        font-size: 9px
+    }
+
+    .search-inner input {
+        font-size: 13px
+    }
+
     .sort-control {
         position: static;
         margin: 8px auto 0
+    }
+
+    .whatsapp-float {
+        right: 16px;
+        bottom: 16px;
+        width: 46px;
+        height: 46px
+    }
+
+    .whatsapp-float img {
+        width: 25px;
+        height: 25px
     }
 
     .brand {
@@ -279,6 +313,34 @@
 
     .cart-item {
         grid-template-columns: 78px 1fr
+    }
+
+    .checkout-page {
+        padding-top: 28px
+    }
+
+    .checkout-panel {
+        padding: 18px
+    }
+
+    .checkout-side {
+        grid-template-columns: 1fr
+    }
+
+    .checkout-heading h2 {
+        font-size: 21px
+    }
+
+    .confirmation-page {
+        padding: 35px 0 70px
+    }
+
+    .confirmation-card {
+        padding: 42px 20px
+    }
+
+    .confirmation-details {
+        grid-template-columns: 1fr
     }
 
     .cart-item img {

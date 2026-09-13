@@ -14,7 +14,17 @@
                     <option value="1kg">1kg</option>
                     <option value="1.5kg">1.5kg</option>
                     <option value="2kg">2kg</option>
-                </select></div><button class="btn btn-primary" style="width:100%" id="modalAdd">Add to my selection
+                </select></div>
+            <div class="choice-group" id="flavorChoice"><label for="cakeFlavor">Choose your flavour</label>
+                <select id="cakeFlavor" style="width:100%; padding:10px; border:2px solid var(--berry); border-radius:4px; font-size:14px;">
+                    <option>Not sure yet</option><option>Vanilla bean</option><option>Chocolate</option>
+                    <option>Red velvet</option><option>Coffee</option><option>Butter cake</option>
+                </select>
+            </div>
+            <div class="choice-group special-note"><label for="specialNote">Special note <span>Optional</span></label>
+                <textarea id="specialNote" rows="3" placeholder="Add a message, theme or special request"></textarea>
+            </div>
+            <button class="btn btn-primary" style="width:100%" id="modalAdd">Add to my selection
                 →</button>
             <p class="form-note">We’ll confirm your date and custom details before payment.</p>
         </div>

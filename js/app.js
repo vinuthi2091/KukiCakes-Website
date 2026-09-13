@@ -1,4 +1,4 @@
-const pages = ['home', 'cakes', 'gallery', 'cart', 'admin'];
+const pages = ['home', 'cakes', 'gallery', 'cart', 'checkout', 'confirmation', 'admin'];
 
 async function loadComponent(targetId, name) {
     const response = await fetch(`components/${name}.html`);

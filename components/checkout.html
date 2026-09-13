@@ -1,0 +1,53 @@
+<div class="page" id="checkout-page">
+    <div class="checkout-page shell">
+        <div class="page-hero checkout-hero">
+            <div class="eyebrow">One last sweet step</div>
+            <h1 class="section-title">Complete your order.</h1>
+            <p class="subtext">Tell us where to bring your cake and how you would like to pay.</p>
+        </div>
+        <form class="checkout-grid" id="checkoutForm">
+            <div class="checkout-fields">
+                <section class="checkout-panel">
+                    <div class="checkout-heading"><span>01</span><div><div class="eyebrow">Your details</div><h2>Customer information</h2></div></div>
+                    <div class="form-grid">
+                        <div class="field"><label for="checkoutName">Full name *</label><input id="checkoutName" name="name" required placeholder="Your full name"></div>
+                        <div class="field"><label for="checkoutPhone">Phone / WhatsApp *</label><input id="checkoutPhone" name="phone" required placeholder="+94 7X XXX XXXX"></div>
+                        <div class="field full"><label for="checkoutEmail">Email address *</label><input id="checkoutEmail" name="email" type="email" required placeholder="you@example.com"></div>
+                    </div>
+                </section>
+                <section class="checkout-panel">
+                    <div class="checkout-heading"><span>02</span><div><div class="eyebrow">Where and when</div><h2>Delivery information</h2></div></div>
+                    <div class="form-grid">
+                        <div class="field full"><label for="deliveryAddress">Delivery address *</label><textarea id="deliveryAddress" name="address" required placeholder="House number, street, area and city"></textarea></div>
+                        <div class="field"><label for="deliveryDate">Delivery date *</label><input id="deliveryDate" name="date" type="date" required></div>
+                        <div class="field"><label for="deliveryTime">Delivery time *</label><select id="deliveryTime" name="time" required><option value="">Choose a time</option><option>Morning (8AM - 12PM)</option><option>Afternoon (12PM - 4PM)</option><option>Evening (4PM - 8PM)</option></select></div>
+                        <div class="field full"><label for="deliveryNote">Special instructions</label><textarea id="deliveryNote" name="note" placeholder="Gate details, message on the cake or anything else we should know"></textarea></div>
+                    </div>
+                </section>
+            </div>
+            <aside class="checkout-side">
+                <section class="checkout-panel order-summary-panel">
+                    <div class="checkout-heading"><span>03</span><div><div class="eyebrow">Your selection</div><h2>Order summary</h2></div></div>
+                    <div id="checkoutItems" class="checkout-items"></div>
+                    <div class="summary-row"><span>Subtotal</span><b id="checkoutSubtotal">Rs. 0</b></div>
+                    <div class="summary-row"><span>Delivery fee</span><span id="checkoutDelivery">Rs. 500</span></div>
+                    <div class="summary-row summary-total"><span>Total</span><strong id="checkoutTotal">Rs. 0</strong></div>
+                </section>
+                <section class="checkout-panel payment-panel">
+                    <div class="checkout-heading"><span>04</span><div><div class="eyebrow">Securely yours</div><h2>Payment method</h2></div></div>
+                    <div class="payment-options">
+                        <label class="payment-option"><input type="radio" name="payment" value="card" checked><span><b>Credit / Debit Card</b><small>Visa, Mastercard or Amex</small></span></label>
+                        <label class="payment-option"><input type="radio" name="payment" value="transfer"><span><b>Bank transfer</b><small>We will share the details after placing your order</small></span></label>
+                        <label class="payment-option"><input type="radio" name="payment" value="cash"><span><b>Cash on delivery</b><small>Available in selected Colombo areas</small></span></label>
+                    </div>
+                    <div id="cardDetails" class="card-details">
+                        <div class="field full"><label for="cardNumber">Card number</label><input id="cardNumber" inputmode="numeric" placeholder="1234 5678 9012 3456"></div>
+                        <div class="form-grid"><div class="field"><label for="cardExpiry">Expiry</label><input id="cardExpiry" placeholder="MM / YY"></div><div class="field"><label for="cardCvv">CVV</label><input id="cardCvv" inputmode="numeric" placeholder="123"></div></div>
+                    </div>
+                    <button class="btn btn-primary checkout-submit" type="submit">Place order / Pay now <span>→</span></button>
+                    <p class="form-note">Your order is confirmed once payment or delivery details are received.</p>
+                </section>
+            </aside>
+        </form>
+    </div>
+</div>

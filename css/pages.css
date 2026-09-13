@@ -542,6 +542,48 @@ footer {
     letter-spacing: .08em
 }
 
+.special-note label {
+    display: flex;
+    justify-content: space-between;
+    align-items: center
+}
+
+.special-note label span {
+    color: var(--muted);
+    font-size: 10px;
+    font-weight: 500;
+    letter-spacing: 0;
+    text-transform: none
+}
+
+.special-note textarea {
+    display: block;
+    width: 100%;
+    min-height: 78px;
+    box-sizing: border-box;
+    margin-top: 9px;
+    padding: 11px 13px;
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    background: #fffaf7;
+    color: var(--ink);
+    font-size: 12px;
+    line-height: 1.5;
+    resize: vertical;
+    outline: 0;
+    transition: border-color .2s ease, box-shadow .2s ease, background .2s ease
+}
+
+.special-note textarea::placeholder {
+    color: #a99691
+}
+
+.special-note textarea:focus {
+    border-color: var(--berry);
+    background: #fff;
+    box-shadow: 0 0 0 3px rgba(174, 64, 87, .1)
+}
+
 .chips {
     display: flex;
     gap: 8px;
@@ -563,6 +605,247 @@ footer {
     color: var(--berry)
 }
 
+.search-empty {
+    grid-column: 1 / -1;
+    padding: 55px 20px;
+    text-align: center;
+    color: var(--muted)
+}
+
+.search-empty h3 {
+    margin: 0 0 6px;
+    color: var(--ink);
+    font: 600 24px var(--serif)
+}
+
+.checkout-page {
+    padding: 45px 0 100px
+}
+
+.checkout-hero {
+    padding: 0 0 35px
+}
+
+.checkout-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 390px;
+    gap: 22px
+}
+
+.checkout-fields,
+.checkout-side {
+    display: grid;
+    gap: 18px;
+    align-content: start
+}
+
+.checkout-panel {
+    background: var(--paper);
+    border: 1px solid var(--line);
+    border-radius: 18px;
+    padding: 25px;
+    box-shadow: 0 10px 30px rgba(73, 42, 32, .045)
+}
+
+.checkout-heading {
+    display: flex;
+    gap: 14px;
+    align-items: flex-start;
+    margin-bottom: 22px
+}
+
+.checkout-heading > span {
+    display: grid;
+    place-items: center;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: var(--peach-2);
+    color: var(--berry);
+    font-size: 12px;
+    font-weight: 700
+}
+
+.checkout-heading .eyebrow {
+    margin: 0 0 2px
+}
+
+.checkout-heading h2 {
+    margin: 0;
+    font: 600 24px var(--serif)
+}
+
+.checkout-items {
+    display: grid;
+    gap: 13px;
+    margin-bottom: 21px
+}
+
+.checkout-item {
+    display: flex;
+    justify-content: space-between;
+    gap: 14px;
+    padding-bottom: 13px;
+    border-bottom: 1px solid var(--line);
+    font-size: 13px
+}
+
+.checkout-item b,
+.checkout-item span {
+    display: block
+}
+
+.checkout-item span,
+.checkout-empty {
+    color: var(--muted);
+    font-size: 11px
+}
+
+.checkout-item strong {
+    color: var(--berry);
+    white-space: nowrap
+}
+
+.payment-options {
+    display: grid;
+    gap: 9px;
+    margin-bottom: 20px
+}
+
+.payment-option {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 12px;
+    border: 1px solid var(--line);
+    border-radius: 11px;
+    background: #fff;
+    font-size: 12px
+}
+
+.payment-option:has(input:checked) {
+    border-color: var(--berry);
+    background: #fff7f5
+}
+
+.payment-option input {
+    accent-color: var(--berry);
+    margin-top: 3px
+}
+
+.payment-option b,
+.payment-option small {
+    display: block
+}
+
+.payment-option small {
+    color: var(--muted);
+    margin-top: 2px
+}
+
+.card-details[hidden] {
+    display: none
+}
+
+.card-details {
+    display: grid;
+    gap: 13px;
+    margin-bottom: 17px
+}
+
+.checkout-submit {
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center
+}
+
+.checkout-submit span {
+    font-size: 18px
+}
+
+.confirmation-page {
+    padding: 70px 0 120px;
+    display: grid;
+    place-items: center
+}
+
+.confirmation-card {
+    width: min(620px, 100%);
+    padding: 60px 40px;
+    border: 1px solid var(--line);
+    border-radius: 24px;
+    background: var(--paper);
+    text-align: center;
+    box-shadow: var(--shadow)
+}
+
+.confirmation-mark {
+    display: grid;
+    place-items: center;
+    width: 76px;
+    height: 76px;
+    margin: 0 auto 22px;
+    border: 2px solid var(--ink);
+    border-radius: 50%;
+    font-size: 40px;
+    line-height: 1
+}
+
+.confirmation-card .section-title {
+    margin: 5px 0 3px
+}
+
+.confirmation-lead {
+    margin: 0;
+    font-weight: 700
+}
+
+.confirmation-card .subtext {
+    max-width: 360px;
+    margin: 8px auto 25px
+}
+
+.confirmation-details {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1px;
+    margin: 0 auto 28px;
+    border: 1px solid var(--line);
+    background: var(--line);
+    text-align: left
+}
+
+.confirmation-details div {
+    display: grid;
+    gap: 3px;
+    padding: 15px 18px;
+    background: #fff
+}
+
+.confirmation-details span {
+    color: var(--muted);
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: .08em
+}
+
+.confirmation-details strong {
+    font: 600 18px var(--serif)
+}
+
+.confirmation-actions {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    flex-wrap: wrap
+}
+
+.search-empty p {
+    margin: 0;
+    font-size: 13px
+}
+
 .toast {
     position: fixed;
     z-index: 200;
@@ -580,5 +863,30 @@ footer {
 
 .toast.show {
     transform: translate(-50%, 0)
+}
+
+.whatsapp-float {
+    position: fixed;
+    right: 24px;
+    bottom: 24px;
+    z-index: 20;
+    width: 50px;
+    height: 50px;
+    display: grid;
+    place-items: center;
+    border-radius: 50%;
+    background: #25d366;
+    box-shadow: 0 8px 22px rgba(24, 91, 42, .28);
+    transition: transform .2s ease, box-shadow .2s ease
+}
+
+.whatsapp-float:hover {
+    transform: translateY(-3px) scale(1.04);
+    box-shadow: 0 12px 28px rgba(24, 91, 42, .36)
+}
+
+.whatsapp-float img {
+    width: 28px;
+    height: 28px
 }
 
