@@ -1,0 +1,37 @@
+<div class="page" id="my-orders-page">
+    <div class="orders-page-wrap">
+
+        <!-- Page hero -->
+        <div class="page-hero">
+            <div class="shell">
+                <div class="eyebrow">Your cake history</div>
+                <h1 class="section-title">My Orders.</h1>
+                <p class="subtext">Track every cake, from placement to doorstep delivery.</p>
+            </div>
+        </div>
+
+        <div class="shell">
+
+            <!-- Status filter tabs -->
+            <div class="orders-filter" role="tablist" aria-label="Filter orders by status">
+                <button class="orders-filter-btn active" data-status="all"     role="tab" aria-selected="true">All</button>
+                <button class="orders-filter-btn"        data-status="pending"    role="tab" aria-selected="false">Pending</button>
+                <button class="orders-filter-btn"        data-status="confirmed"  role="tab" aria-selected="false">Confirmed</button>
+                <button class="orders-filter-btn"        data-status="preparing"  role="tab" aria-selected="false">Preparing</button>
+                <button class="orders-filter-btn"        data-status="delivering" role="tab" aria-selected="false">Out for Delivery</button>
+                <button class="orders-filter-btn"        data-status="delivered"  role="tab" aria-selected="false">Delivered</button>
+                <button class="orders-filter-btn"        data-status="cancelled"  role="tab" aria-selected="false">Cancelled</button>
+            </div>
+
+            <!-- Order cards rendered by auth.js -->
+            <div class="orders-list" id="ordersList" aria-live="polite"></div>
+
+            <!-- Empty state -->
+            <div class="orders-empty" id="ordersEmpty" hidden>
+                <strong>No orders found</strong>
+                No orders match this filter. Try a different status or browse our cakes.
+            </div>
+
+        </div>
+    </div>
+</div>

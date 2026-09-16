@@ -1,0 +1,1275 @@
+/* Authentication pages are part of the existing SPA */
+.page#login-page,
+.page#signup-page,
+.page#profile-page,
+.page#my-orders-page,
+.page#auth-guard-page {
+    display: none;
+}
+
+.page#login-page.active,
+.page#signup-page.active,
+.page#profile-page.active,
+.page#my-orders-page.active,
+.page#auth-guard-page.active {
+    display: block;
+}
+
+/* ================================================================
+   KúkiCakes — Authentication & Profile UI Styles  (css/auth.css)
+   ----------------------------------------------------------------
+   Design tokens from base.css are used throughout; no duplication
+   of existing rules from home.css / header.css / pages.css.
+   ================================================================ */
+
+/* ----------------------------------------------------------------
+   Utility
+   ---------------------------------------------------------------- */
+.hidden {
+    display: none !important;
+}
+
+/* ----------------------------------------------------------------
+   Auth pages  (Login / Sign Up)
+   ---------------------------------------------------------------- */
+.auth-page {
+    padding: 65px 0 100px;
+}
+
+.auth-hero {
+    text-align: center;
+    margin-bottom: 42px;
+}
+
+.auth-hero .section-title {
+    margin: 10px auto 0;
+}
+
+.auth-hero .subtext {
+    margin: 10px auto 0;
+    font-size: 15px;
+}
+
+/* Card wrapper — same visual language as .checkout-panel */
+.auth-card {
+    max-width: 480px;
+    margin: 0 auto;
+    background: var(--paper);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    padding: 40px 38px;
+    box-shadow: var(--shadow);
+}
+
+/* Override .form-grid to single column inside auth forms */
+.auth-card .form-grid {
+    grid-template-columns: 1fr;
+    gap: 16px;
+    margin-bottom: 20px;
+}
+
+/* auth-specific field inputs (inherit .field from home.css) */
+.auth-card .field input {
+    padding: 13px 16px;
+    border-radius: 11px;
+    font-size: 14px;
+    transition: border-color .2s, box-shadow .2s;
+}
+
+.auth-card .field input.is-error {
+    border-color: #e53935;
+}
+
+.auth-card .field input.is-ok {
+    border-color: #4caf50;
+}
+
+/* Password toggle wrapper */
+.password-wrap {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.password-wrap input {
+    padding-right: 50px !important;
+}
+
+.password-toggle {
+    position: absolute;
+    right: 13px;
+    top: 50%;
+    transform: translateY(-50%);
+    border: 0;
+    background: none;
+    color: var(--muted);
+    cursor: pointer;
+    font-size: 16px;
+    padding: 4px;
+    line-height: 1;
+    transition: color .2s;
+    flex-shrink: 0;
+}
+
+.password-toggle:hover {
+    color: var(--berry);
+}
+
+/* Inline validation messages */
+.field-error {
+    display: block;
+    font-size: 11px;
+    color: #c0392b;
+    margin-top: 4px;
+    min-height: 15px;
+    transition: opacity .2s;
+    font-weight: 500;
+}
+
+.field-error:empty {
+    opacity: 0;
+}
+
+/* Password strength bar */
+.strength-bar {
+    height: 4px;
+    background: var(--line);
+    border-radius: 2px;
+    margin: 8px 0 5px;
+    overflow: hidden;
+}
+
+.strength-fill {
+    height: 100%;
+    width: 0;
+    border-radius: 2px;
+    transition: width .35s ease, background .35s ease;
+}
+
+.strength-fill.weak {
+    width: 33%;
+    background: #e74c3c;
+}
+
+.strength-fill.moderate {
+    width: 66%;
+    background: #f39c12;
+}
+
+.strength-fill.strong {
+    width: 100%;
+    background: #27ae60;
+}
+
+.strength-label {
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .1em;
+    color: var(--muted);
+}
+
+.strength-label.weak {
+    color: #e74c3c;
+}
+
+.strength-label.moderate {
+    color: #f39c12;
+}
+
+.strength-label.strong {
+    color: #27ae60;
+}
+
+/* Password requirement checklist */
+.password-reqs {
+    list-style: none;
+    margin: 10px 0 0;
+    padding: 0;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 5px 14px;
+}
+
+.password-reqs li {
+    font-size: 11px;
+    color: var(--muted);
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    transition: color .2s;
+}
+
+.password-reqs li::before {
+    content: '○';
+    font-size: 9px;
+    color: var(--line);
+    flex-shrink: 0;
+}
+
+.password-reqs li.met {
+    color: #27ae60;
+}
+
+.password-reqs li.met::before {
+    content: '●';
+    color: #27ae60;
+}
+
+/* Remember me / form-check row */
+.form-check {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin: 16px 0 20px;
+    font-size: 12px;
+    color: var(--muted);
+}
+
+.form-check label {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    cursor: pointer;
+}
+
+.form-check input[type="checkbox"] {
+    accent-color: var(--berry);
+    width: 15px;
+    height: 15px;
+    cursor: pointer;
+}
+
+.form-check-right {
+    border: 0;
+    background: none;
+    color: var(--berry);
+    font: inherit;
+    font-size: 12px;
+    font-weight: 700;
+    cursor: pointer;
+    text-decoration: underline;
+    text-underline-offset: 2px;
+    padding: 0;
+}
+
+/* Forgot password inline card */
+.forgot-message {
+    background: var(--peach-2);
+    border: 1px solid var(--peach);
+    border-radius: 12px;
+    padding: 14px 18px;
+    font-size: 12px;
+    color: var(--ink);
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 14px;
+    animation: fade .25s ease;
+}
+
+.forgot-message p {
+    margin: 0;
+    line-height: 1.5;
+}
+
+/* Auth link row ("Already have an account?") */
+.auth-links {
+    text-align: center;
+    font-size: 13px;
+    color: var(--muted);
+    margin-top: 22px;
+}
+
+.auth-links a {
+    color: var(--berry);
+    font-weight: 700;
+    cursor: pointer;
+    text-decoration: underline;
+    text-underline-offset: 2px;
+}
+
+.auth-links a:hover {
+    color: var(--berry-dark);
+}
+
+/* Sign-up success state */
+.auth-success {
+    text-align: center;
+    padding: 16px 0 8px;
+    animation: fade .3s ease;
+}
+
+.auth-success-mark {
+    display: grid;
+    place-items: center;
+    width: 74px;
+    height: 74px;
+    border-radius: 50%;
+    background: #f0fdf4;
+    border: 2px solid #22c55e;
+    font-size: 30px;
+    color: #16a34a;
+    margin: 0 auto 22px;
+}
+
+.auth-success h2 {
+    font: 600 28px var(--serif);
+    margin: 0 0 8px;
+}
+
+.auth-success p {
+    color: var(--muted);
+    font-size: 14px;
+    margin: 0 0 28px;
+}
+
+/* ----------------------------------------------------------------
+   Navbar — guest / authenticated states
+   ---------------------------------------------------------------- */
+.nav-guest,
+#navGuest.auth-nav {           /* alias for index.html class="auth-nav" */
+    display: flex;
+    align-items: center;
+    gap: 7px;
+}
+
+/* Authenticated user pill */
+.nav-user,
+#navUser.auth-nav {            /* alias for index.html class="auth-nav" */
+    position: relative;
+}
+
+
+.user-avatar-btn,
+.user-menu-btn {               /* alias for index.html class="user-menu-btn" */
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    border: 1px solid var(--line);
+    background: rgba(255, 255, 255, .72);
+    border-radius: 99px;
+    padding: 5px 12px 5px 5px;
+    cursor: pointer;
+    transition: border-color .2s, box-shadow .2s;
+    font: 600 13px var(--sans);
+    color: var(--ink);
+    white-space: nowrap;
+}
+
+.user-avatar-btn:hover,
+.user-menu-btn:hover {
+    border-color: var(--berry);
+    box-shadow: 0 4px 14px rgba(158, 64, 83, .13);
+}
+
+.user-avatar {
+    display: grid;
+    place-items: center;
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    background: var(--berry);
+    color: #fff;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: .04em;
+    flex-shrink: 0;
+}
+
+.user-display-name {
+    max-width: 96px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.dropdown-arrow {
+    font-size: 10px;
+    color: var(--muted);
+    transition: transform .22s;
+    line-height: 1;
+}
+
+.user-avatar-btn[aria-expanded="true"] .dropdown-arrow {
+    transform: rotate(180deg);
+}
+
+/* Dropdown panel */
+.user-dropdown {
+    position: absolute;
+    top: calc(100% + 10px);
+    right: 0;
+    background: #fff;
+    border: 1px solid var(--line);
+    border-radius: 18px;
+    box-shadow: 0 14px 48px rgba(52, 36, 31, .13);
+    min-width: 185px;
+    overflow: hidden;
+    display: none;
+    z-index: 70;
+    animation: fade .18s ease;
+}
+
+.user-dropdown.open {
+    display: block;
+}
+
+.user-dropdown a,
+.user-dropdown button {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+    padding: 13px 18px;
+    font: 500 13px var(--sans);
+    color: var(--ink);
+    background: transparent;
+    border: 0;
+    text-align: left;
+    cursor: pointer;
+    transition: background .15s;
+    text-decoration: none;
+}
+
+.user-dropdown a:hover,
+.user-dropdown button:hover {
+    background: var(--cream);
+}
+
+.user-dropdown hr {
+    margin: 0;
+    border: 0;
+    border-top: 1px solid var(--line);
+}
+
+.dropdown-logout {
+    color: #c0392b !important;
+}
+
+/* ----------------------------------------------------------------
+   Cart-merge notification banner
+   ---------------------------------------------------------------- */
+.cart-merge-banner {
+    background: var(--peach-2);
+    border-bottom: 1px solid var(--peach);
+    padding: 11px 0;
+    text-align: center;
+    font-size: 13px;
+    color: var(--ink);
+    display: none;
+    animation: fade .4s ease;
+    position: relative;
+    z-index: 40;
+}
+
+.cart-merge-banner.show {
+    display: block;
+}
+
+.cart-merge-banner button {
+    border: 0;
+    background: none;
+    color: var(--berry);
+    font: 700 inherit;
+    cursor: pointer;
+    margin-left: 8px;
+    font-size: 16px;
+    line-height: 1;
+    vertical-align: middle;
+}
+
+/* ----------------------------------------------------------------
+   Profile Dashboard
+   ---------------------------------------------------------------- */
+.profile-page-wrap {
+    padding: 55px 0 100px;
+}
+
+.profile-layout {
+    display: grid;
+    grid-template-columns: 268px 1fr;
+    gap: 26px;
+    align-items: start;
+}
+
+/* ---- Sidebar ---- */
+.profile-sidebar {
+    background: var(--paper);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    overflow: hidden;
+    position: sticky;
+    top: 102px;
+    box-shadow: 0 8px 32px rgba(52, 36, 31, .07);
+}
+
+.sidebar-avatar-wrap {
+    background: linear-gradient(140deg, var(--berry) 0%, var(--berry-dark) 100%);
+    padding: 26px 20px 22px;
+    text-align: center;
+    color: #fff;
+}
+
+.sidebar-avatar {
+    display: grid;
+    place-items: center;
+    width: 70px;
+    height: 70px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, .18);
+    border: 2px solid rgba(255, 255, 255, .38);
+    font: 700 26px var(--sans);
+    color: #fff;
+    margin: 0 auto 13px;
+    letter-spacing: .03em;
+}
+
+.sidebar-name {
+    font: 700 16px var(--serif);
+    margin-bottom: 3px;
+    word-break: break-word;
+}
+
+.sidebar-email {
+    font-size: 11px;
+    opacity: .72;
+    word-break: break-all;
+    line-height: 1.4;
+}
+
+.member-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    margin-top: 12px;
+    background: rgba(255, 255, 255, .14);
+    border: 1px solid rgba(255, 255, 255, .22);
+    border-radius: 99px;
+    padding: 5px 13px;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: .07em;
+    text-transform: uppercase;
+}
+
+/* Sidebar nav */
+.sidebar-nav {
+    display: flex;
+    flex-direction: column;
+    padding: 8px;
+    gap: 2px;
+}
+
+.sidebar-nav-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+    padding: 12px 14px;
+    border: 0;
+    background: transparent;
+    border-radius: 10px;
+    font: 500 13px var(--sans);
+    color: var(--ink);
+    text-align: left;
+    cursor: pointer;
+    transition: background .15s, color .15s;
+}
+
+.sidebar-nav-item:hover {
+    background: var(--cream);
+}
+
+.sidebar-nav-item.active {
+    background: var(--peach-2);
+    color: var(--berry);
+    font-weight: 700;
+}
+
+.sidebar-logout {
+    color: #c0392b;
+    margin-top: 6px;
+    border-top: 1px solid var(--line);
+    border-radius: 0 0 14px 14px;
+    padding-top: 14px;
+}
+
+.sidebar-logout:hover {
+    background: #fff5f5 !important;
+    color: #c0392b;
+}
+
+/* ---- Profile content ---- */
+.profile-content {
+    min-width: 0;
+}
+
+.profile-panel {
+    display: none;
+    background: var(--paper);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    box-shadow: 0 8px 32px rgba(52, 36, 31, .07);
+    overflow: hidden;
+    animation: fade .28s ease;
+}
+
+.profile-panel.active {
+    display: block;
+}
+
+.profile-panel-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 22px 28px;
+    border-bottom: 1px solid var(--line);
+}
+
+.profile-panel-header h2 {
+    font: 600 21px var(--serif);
+    margin: 0;
+}
+
+.profile-panel-body {
+    padding: 26px 28px;
+}
+
+/* Field display rows */
+.profile-field-row {
+    display: grid;
+    grid-template-columns: 155px 1fr;
+    gap: 10px;
+    align-items: start;
+    padding: 14px 0;
+    border-bottom: 1px solid var(--line);
+}
+
+.profile-field-row:last-child {
+    border-bottom: 0;
+}
+
+.profile-field-label {
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .08em;
+    color: var(--muted);
+    padding-top: 2px;
+}
+
+.profile-field-value {
+    font-size: 14px;
+    color: var(--ink);
+    font-weight: 500;
+    word-break: break-word;
+}
+
+.profile-field-muted {
+    color: var(--muted);
+    font-style: italic;
+    font-size: 13px;
+}
+
+/* Edit-mode inputs */
+.profile-edit-input {
+    width: 100%;
+    padding: 11px 14px;
+    border: 1.5px solid var(--line);
+    border-radius: 10px;
+    background: #fff;
+    color: var(--ink);
+    font: inherit;
+    font-size: 14px;
+    outline: none;
+    transition: border-color .2s, box-shadow .2s;
+}
+
+.profile-edit-input:focus {
+    border-color: var(--berry);
+    box-shadow: 0 0 0 3px rgba(158, 64, 83, .09);
+}
+
+.profile-edit-group {
+    display: grid;
+    gap: 14px;
+}
+
+.profile-edit-label {
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .08em;
+    color: var(--muted);
+    display: block;
+    margin-bottom: 6px;
+}
+
+.profile-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 22px;
+    flex-wrap: wrap;
+}
+
+/* Account status badge */
+.account-status {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: #f0fdf4;
+    border: 1px solid #bbf7d0;
+    color: #166534;
+    padding: 5px 13px;
+    border-radius: 99px;
+    font-size: 11px;
+    font-weight: 700;
+}
+
+/* Recent-orders mini list inside profile */
+.profile-orders-mini {
+    display: grid;
+    gap: 10px;
+    margin-bottom: 20px;
+}
+
+.profile-order-mini {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 13px 16px;
+    background: #fff;
+    border: 1px solid var(--line);
+    border-radius: 13px;
+    font-size: 12px;
+    gap: 12px;
+}
+
+.profile-order-mini-info b {
+    display: block;
+    font: 600 14px var(--serif);
+    margin-bottom: 2px;
+}
+
+.profile-order-mini-info span {
+    color: var(--muted);
+}
+
+.profile-order-mini-right {
+    text-align: right;
+    flex-shrink: 0;
+}
+
+.profile-order-mini-price {
+    font-weight: 700;
+    color: var(--berry);
+    font-size: 14px;
+}
+
+/* ----------------------------------------------------------------
+   Address Cards
+   ---------------------------------------------------------------- */
+.address-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 15px;
+    margin-top: 8px;
+}
+
+.address-card {
+    background: #fff;
+    border: 1.5px solid var(--line);
+    border-radius: 16px;
+    padding: 18px;
+    position: relative;
+    transition: border-color .2s, box-shadow .2s;
+}
+
+.address-card:hover {
+    border-color: var(--berry);
+    box-shadow: 0 5px 18px rgba(158, 64, 83, .08);
+}
+
+.address-card.is-default {
+    border-color: var(--berry);
+}
+
+.address-default-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    background: var(--peach-2);
+    color: var(--berry);
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: .07em;
+    text-transform: uppercase;
+    padding: 3px 10px;
+    border-radius: 99px;
+    margin-bottom: 10px;
+}
+
+.address-name {
+    font-weight: 700;
+    font-size: 14px;
+    margin-bottom: 5px;
+}
+
+.address-line {
+    font-size: 12px;
+    color: var(--muted);
+    line-height: 1.65;
+}
+
+.address-actions {
+    display: flex;
+    gap: 6px;
+    margin-top: 14px;
+    flex-wrap: wrap;
+}
+
+.address-btn {
+    border: 1px solid var(--line);
+    background: #fff;
+    border-radius: 99px;
+    padding: 5px 13px;
+    font: 600 11px var(--sans);
+    cursor: pointer;
+    transition: background .15s, border-color .15s, color .15s;
+}
+
+.address-btn:hover {
+    border-color: var(--berry);
+    color: var(--berry);
+}
+
+.address-btn-delete {
+    color: #c0392b;
+    border-color: #fecdd3;
+}
+
+.address-btn-delete:hover {
+    background: #fff5f5;
+    border-color: #c0392b;
+}
+
+/* Add new card */
+.add-address-card {
+    border: 2px dashed var(--line);
+    border-radius: 16px;
+    padding: 18px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 138px;
+    cursor: pointer;
+    color: var(--muted);
+    font: 500 13px var(--sans);
+    gap: 8px;
+    background: transparent;
+    transition: border-color .2s, color .2s;
+    width: 100%;
+    text-align: center;
+}
+
+.add-address-card:hover {
+    border-color: var(--berry);
+    color: var(--berry);
+}
+
+.add-addr-icon {
+    font-size: 26px;
+    line-height: 1;
+}
+
+/* Address modal overlay */
+.address-modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(35, 23, 20, .56);
+    backdrop-filter: blur(7px);
+    z-index: 300;
+    display: none;
+    place-items: center;
+    padding: 20px;
+    animation: fade .2s ease;
+}
+
+.address-modal-overlay.open {
+    display: grid;
+}
+
+.address-modal-card {
+    background: #fff;
+    border-radius: var(--radius);
+    padding: 34px;
+    width: min(500px, 100%);
+    max-height: 90vh;
+    overflow-y: auto;
+    box-shadow: 0 24px 64px rgba(52, 36, 31, .18);
+    position: relative;
+}
+
+.address-modal-card h3 {
+    font: 600 21px var(--serif);
+    margin: 0 0 24px;
+}
+
+.address-modal-fields {
+    display: grid;
+    gap: 14px;
+}
+
+.addr-field label {
+    display: block;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .08em;
+    color: var(--muted);
+    margin-bottom: 6px;
+}
+
+.addr-field input {
+    width: 100%;
+    padding: 12px 14px;
+    border: 1.5px solid var(--line);
+    border-radius: 10px;
+    background: #fff;
+    color: var(--ink);
+    font: inherit;
+    font-size: 14px;
+    outline: none;
+    transition: border-color .2s;
+}
+
+.addr-field input:focus {
+    border-color: var(--berry);
+    box-shadow: 0 0 0 3px rgba(158, 64, 83, .09);
+}
+
+.address-modal-actions {
+    display: flex;
+    gap: 10px;
+    justify-content: flex-end;
+    margin-top: 24px;
+}
+
+.modal-close-x {
+    position: absolute;
+    right: 16px;
+    top: 16px;
+    width: 34px;
+    height: 34px;
+    border: 0;
+    border-radius: 50%;
+    background: var(--cream);
+    color: var(--ink);
+    font-size: 18px;
+    cursor: pointer;
+    display: grid;
+    place-items: center;
+    transition: background .15s;
+}
+
+.modal-close-x:hover {
+    background: var(--peach);
+}
+
+/* ----------------------------------------------------------------
+   My Orders page
+   ---------------------------------------------------------------- */
+.orders-page-wrap {
+    padding-bottom: 100px;
+}
+
+/* Status filter tabs */
+.orders-filter {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin: 0 0 28px;
+}
+
+.orders-filter-btn {
+    border: 1px solid var(--line);
+    background: #fff;
+    padding: 9px 19px;
+    border-radius: 99px;
+    font: 600 12px var(--sans);
+    cursor: pointer;
+    transition: background .15s, border-color .15s, color .15s;
+}
+
+.orders-filter-btn:hover {
+    border-color: var(--ink);
+}
+
+.orders-filter-btn.active {
+    background: var(--ink);
+    color: #fff;
+    border-color: var(--ink);
+}
+
+/* Order card */
+.orders-list {
+    display: grid;
+    gap: 14px;
+}
+
+.order-card {
+    background: #fff;
+    border: 1px solid var(--line);
+    border-radius: 18px;
+    padding: 20px 24px;
+    transition: box-shadow .2s;
+}
+
+.order-card:hover {
+    box-shadow: 0 8px 28px rgba(52, 36, 31, .08);
+}
+
+.order-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 12px;
+    margin-bottom: 14px;
+}
+
+.order-number {
+    font: 700 15px var(--serif);
+    color: var(--ink);
+}
+
+.order-date {
+    font-size: 11px;
+    color: var(--muted);
+    margin-top: 2px;
+}
+
+/* Status badges */
+.order-status-badge {
+    padding: 5px 13px;
+    border-radius: 99px;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .07em;
+    white-space: nowrap;
+    flex-shrink: 0;
+}
+
+.status--pending {
+    background: #fef9c3;
+    color: #854d0e;
+}
+
+.status--confirmed {
+    background: #dbeafe;
+    color: #1e40af;
+}
+
+.status--preparing {
+    background: #ede9fe;
+    color: #5b21b6;
+}
+
+.status--delivering {
+    background: #fce7f3;
+    color: #9d174d;
+}
+
+.status--delivered {
+    background: #dcfce7;
+    color: #166534;
+}
+
+.status--cancelled {
+    background: #fee2e2;
+    color: #991b1b;
+}
+
+.order-card-body {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    padding: 14px 0;
+    border-top: 1px solid var(--line);
+    border-bottom: 1px solid var(--line);
+}
+
+.order-cake-img {
+    width: 64px;
+    height: 64px;
+    border-radius: 12px;
+    object-fit: cover;
+    flex-shrink: 0;
+}
+
+.order-cake-info h4 {
+    font: 600 15px var(--serif);
+    margin: 0 0 3px;
+}
+
+.order-cake-info p {
+    font-size: 12px;
+    color: var(--muted);
+    margin: 0;
+}
+
+.order-card-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 14px;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.order-total {
+    font: 700 16px var(--serif);
+    color: var(--berry);
+}
+
+.order-delivery-date {
+    font-size: 11px;
+    color: var(--muted);
+    margin-top: 2px;
+}
+
+.order-view-btn {
+    border: 1px solid var(--line);
+    background: #fff;
+    border-radius: 99px;
+    padding: 7px 17px;
+    font: 600 12px var(--sans);
+    cursor: pointer;
+    color: var(--ink);
+    transition: border-color .2s, color .2s;
+    white-space: nowrap;
+}
+
+.order-view-btn:hover {
+    border-color: var(--berry);
+    color: var(--berry);
+}
+
+.order-details-content {
+    margin-top: 14px;
+    padding: 16px;
+    background: var(--cream);
+    border-radius: 12px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px 16px;
+    animation: fade .2s ease;
+}
+
+.order-details-content dt {
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .08em;
+    color: var(--muted);
+    margin-bottom: 2px;
+}
+
+.order-details-content dd {
+    margin: 0;
+    font-size: 13px;
+    color: var(--ink);
+    font-weight: 500;
+}
+
+/* Empty / no-results state */
+.orders-empty {
+    text-align: center;
+    padding: 65px 20px;
+    color: var(--muted);
+}
+
+.orders-empty strong {
+    display: block;
+    font: 600 22px var(--serif);
+    color: var(--ink);
+    margin-bottom: 8px;
+}
+
+/* ----------------------------------------------------------------
+   Auth Guard page
+   ---------------------------------------------------------------- */
+.auth-guard-wrap {
+    min-height: 70vh;
+    display: grid;
+    place-items: center;
+    padding: 60px 20px;
+}
+
+.auth-guard-card {
+    width: min(520px, 100%);
+    text-align: center;
+    background: var(--paper);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    padding: 62px 40px;
+    box-shadow: var(--shadow);
+}
+
+.auth-guard-icon {
+    font-size: 52px;
+    margin-bottom: 18px;
+    display: block;
+}
+
+.auth-guard-card .section-title {
+    margin: 8px 0 10px;
+}
+
+.auth-guard-card .subtext {
+    margin: 0 auto 32px;
+}
+
+.auth-guard-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    align-items: center;
+}
+
+/* ----------------------------------------------------------------
+   Change Password section
+   ---------------------------------------------------------------- */
+.change-pw-form {
+    display: grid;
+    gap: 16px;
+    max-width: 420px;
+}
+
+.change-pw-success {
+    background: #f0fdf4;
+    border: 1px solid #bbf7d0;
+    color: #166534;
+    border-radius: 10px;
+    padding: 13px 16px;
+    font-size: 13px;
+    font-weight: 600;
+    display: none;
+    animation: fade .25s ease;
+}
+
+.change-pw-success.show {
+    display: block;
+}
+
+/* ----------------------------------------------------------------
+   Address 2-column grid inside modal (compact)
+   ---------------------------------------------------------------- */
+.addr-grid-2 {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+}

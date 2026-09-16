@@ -1,0 +1,83 @@
+<div class="page" id="login-page">
+    <div class="auth-page">
+        <div class="shell">
+
+            <!-- Page hero -->
+            <div class="auth-hero center">
+                <div class="eyebrow">Welcome back</div>
+                <h1 class="section-title">Log in to KúkiCakes.</h1>
+                <p class="subtext">Access your saved orders, addresses, and custom cake inquiries.</p>
+            </div>
+
+            <!-- Login card -->
+            <div class="auth-card">
+
+                <form id="loginForm" novalidate>
+
+                    <!-- Email -->
+                    <div class="field">
+                        <label for="li-email">Email Address *</label>
+                        <input
+                            id="li-email"
+                            name="email"
+                            type="email"
+                            placeholder="amaya@email.com"
+                            autocomplete="email"
+                            required
+                        >
+                        <span class="field-error" id="li-email-err" aria-live="polite"></span>
+                    </div>
+
+                    <!-- Password -->
+                    <div class="field" style="margin-top:16px">
+                        <label for="li-password">Password *</label>
+                        <div class="password-wrap">
+                            <input
+                                id="li-password"
+                                name="password"
+                                type="password"
+                                placeholder="Your password"
+                                autocomplete="current-password"
+                                required
+                            >
+                            <button type="button" class="password-toggle" aria-label="Show password">👁</button>
+                        </div>
+                        <span class="field-error" id="li-password-err" aria-live="polite"></span>
+                    </div>
+
+                    <!-- Remember me + Forgot password -->
+                    <div class="form-check">
+                        <label>
+                            <input type="checkbox" id="li-remember" name="remember">
+                            Remember me
+                        </label>
+                        <button type="button" class="form-check-right" id="forgotPasswordBtn">Forgot Password?</button>
+                    </div>
+
+                    <!-- Forgot password inline message -->
+                    <div class="forgot-message" id="forgotMessage" hidden>
+                        <p>Enter your email above and we'll send you a reset link.</p>
+                        <button type="button" class="btn btn-ghost btn-sm" id="sendResetBtn" style="white-space:nowrap;flex-shrink:0">Send link</button>
+                    </div>
+
+                    <!-- Submit -->
+                    <button
+                        type="submit"
+                        class="btn btn-primary"
+                        id="loginSubmitBtn"
+                        style="width:100%"
+                    >
+                        Log In →
+                    </button>
+
+                </form>
+
+                <!-- Link to sign up -->
+                <p class="auth-links">
+                    Don't have an account? <a href="#signup" data-page="signup">Sign up →</a>
+                </p>
+
+            </div><!-- /.auth-card -->
+        </div><!-- /.shell -->
+    </div><!-- /.auth-page -->
+</div><!-- /.page #login-page -->

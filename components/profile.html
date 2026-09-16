@@ -1,0 +1,281 @@
+<div class="page" id="profile-page">
+    <div class="profile-page-wrap">
+        <div class="shell">
+            <div class="profile-layout">
+
+                <!-- ================================================
+                     SIDEBAR
+                     ================================================ -->
+                <aside class="profile-sidebar" aria-label="Account navigation">
+
+                    <!-- User info header -->
+                    <div class="sidebar-avatar-wrap">
+                        <div class="sidebar-avatar" id="profileAvatar" aria-hidden="true">K</div>
+                        <div class="sidebar-name"  id="profileSidebarName">KúkiCakes User</div>
+                        <div class="sidebar-email" id="profileSidebarEmail">user@kukicakes.lk</div>
+                        <span class="member-badge">✦ Active Member</span>
+                    </div>
+
+                    <!-- Navigation -->
+                    <nav class="sidebar-nav">
+                        <button class="sidebar-nav-item active" data-panel="personal"  aria-controls="panel-personal">👤 Personal Info</button>
+                        <button class="sidebar-nav-item"        data-panel="contact"   aria-controls="panel-contact">📞 Contact Info</button>
+                        <button class="sidebar-nav-item"        data-panel="shipping"  aria-controls="panel-shipping">🏠 Shipping Address</button>
+                        <button class="sidebar-nav-item"        data-panel="billing"   aria-controls="panel-billing">💳 Billing Address</button>
+                        <button class="sidebar-nav-item"        data-panel="orders"    aria-controls="panel-orders">📦 My Orders</button>
+                        <button class="sidebar-nav-item"        data-panel="password"  aria-controls="panel-password">🔒 Change Password</button>
+                        <button class="sidebar-nav-item sidebar-logout" id="profileLogoutBtn">↩ Logout</button>
+                    </nav>
+
+                </aside><!-- /.profile-sidebar -->
+
+                <!-- ================================================
+                     MAIN CONTENT PANELS
+                     ================================================ -->
+                <main class="profile-content" id="profileContent">
+
+                    <!-- ----------------------------------------
+                         PANEL: Personal Information
+                         ---------------------------------------- -->
+                    <section class="profile-panel active" id="panel-personal" role="tabpanel" aria-label="Personal Information">
+                        <div class="profile-panel-header">
+                            <h2>Personal Information</h2>
+                            <button class="btn btn-light btn-sm" id="personalEditBtn">✎ Edit</button>
+                        </div>
+                        <div class="profile-panel-body">
+
+                            <!-- Display mode -->
+                            <div id="personalDisplay">
+                                <div class="profile-field-row">
+                                    <span class="profile-field-label">Full Name</span>
+                                    <span class="profile-field-value" id="profileName">—</span>
+                                </div>
+                                <div class="profile-field-row">
+                                    <span class="profile-field-label">Registered</span>
+                                    <span class="profile-field-value profile-field-muted" id="profileJoinDate">—</span>
+                                </div>
+                                <div class="profile-field-row">
+                                    <span class="profile-field-label">Account Status</span>
+                                    <span class="account-status">✓ Active</span>
+                                </div>
+                            </div>
+
+                            <!-- Edit mode (hidden by default) -->
+                            <div id="personalEdit" class="hidden">
+                                <div class="profile-edit-group">
+                                    <div>
+                                        <label class="profile-edit-label" for="editNameInput">Full Name *</label>
+                                        <input class="profile-edit-input" id="editNameInput" type="text" placeholder="Your full name" autocomplete="name">
+                                        <span class="field-error" id="editNameErr" aria-live="polite"></span>
+                                    </div>
+                                </div>
+                                <div class="profile-actions">
+                                    <button class="btn btn-primary btn-sm" id="personalSaveBtn">Save Changes</button>
+                                    <button class="btn btn-ghost btn-sm"   id="personalCancelBtn">Cancel</button>
+                                </div>
+                            </div>
+
+                        </div><!-- /.profile-panel-body -->
+                    </section><!-- /#panel-personal -->
+
+                    <!-- ----------------------------------------
+                         PANEL: Contact Information
+                         ---------------------------------------- -->
+                    <section class="profile-panel" id="panel-contact" role="tabpanel" aria-label="Contact Information">
+                        <div class="profile-panel-header">
+                            <h2>Contact Information</h2>
+                            <button class="btn btn-light btn-sm" id="contactEditBtn">✎ Edit</button>
+                        </div>
+                        <div class="profile-panel-body">
+
+                            <!-- Display mode -->
+                            <div id="contactDisplay">
+                                <div class="profile-field-row">
+                                    <span class="profile-field-label">Email</span>
+                                    <span class="profile-field-value profile-field-muted" id="profileEmail">—</span>
+                                </div>
+                                <div class="profile-field-row">
+                                    <span class="profile-field-label">Phone / WhatsApp</span>
+                                    <span class="profile-field-value" id="profilePhone">—</span>
+                                </div>
+                            </div>
+
+                            <!-- Edit mode -->
+                            <div id="contactEdit" class="hidden">
+                                <div class="profile-edit-group">
+                                    <div>
+                                        <label class="profile-edit-label">Email</label>
+                                        <input class="profile-edit-input" type="email" value="" id="profileEmailDisplay" disabled style="opacity:.6;cursor:not-allowed">
+                                        <span style="font-size:11px;color:var(--muted);margin-top:4px;display:block">Email cannot be changed from here.</span>
+                                    </div>
+                                    <div>
+                                        <label class="profile-edit-label" for="editPhoneInput">Phone / WhatsApp *</label>
+                                        <input class="profile-edit-input" id="editPhoneInput" type="tel" placeholder="+94 77 000 0000" autocomplete="tel">
+                                        <span class="field-error" id="editPhoneErr" aria-live="polite"></span>
+                                    </div>
+                                </div>
+                                <div class="profile-actions">
+                                    <button class="btn btn-primary btn-sm" id="contactSaveBtn">Save Changes</button>
+                                    <button class="btn btn-ghost btn-sm"   id="contactCancelBtn">Cancel</button>
+                                </div>
+                            </div>
+
+                        </div>
+                    </section><!-- /#panel-contact -->
+
+                    <!-- ----------------------------------------
+                         PANEL: Shipping Address
+                         ---------------------------------------- -->
+                    <section class="profile-panel" id="panel-shipping" role="tabpanel" aria-label="Shipping Addresses">
+                        <div class="profile-panel-header">
+                            <h2>Shipping Addresses</h2>
+                        </div>
+                        <div class="profile-panel-body">
+                            <div class="address-grid" id="shippingAddrGrid">
+                                <!-- Populated by auth.js -->
+                            </div>
+                        </div>
+                    </section>
+
+                    <!-- ----------------------------------------
+                         PANEL: Billing Address
+                         ---------------------------------------- -->
+                    <section class="profile-panel" id="panel-billing" role="tabpanel" aria-label="Billing Addresses">
+                        <div class="profile-panel-header">
+                            <h2>Billing Addresses</h2>
+                        </div>
+                        <div class="profile-panel-body">
+                            <div class="address-grid" id="billingAddrGrid">
+                                <!-- Populated by auth.js -->
+                            </div>
+                        </div>
+                    </section>
+
+                    <!-- ----------------------------------------
+                         PANEL: My Orders (mini preview)
+                         ---------------------------------------- -->
+                    <section class="profile-panel" id="panel-orders" role="tabpanel" aria-label="Recent Orders">
+                        <div class="profile-panel-header">
+                            <h2>Recent Orders</h2>
+                        </div>
+                        <div class="profile-panel-body">
+                            <div class="profile-orders-mini" id="profileOrdersMini">
+                                <!-- Populated by auth.js -->
+                            </div>
+                            <button class="btn btn-ghost btn-sm" data-page="my-orders" style="margin-top:4px">
+                                View All Orders →
+                            </button>
+                        </div>
+                    </section>
+
+                    <!-- ----------------------------------------
+                         PANEL: Change Password
+                         ---------------------------------------- -->
+                    <section class="profile-panel" id="panel-password" role="tabpanel" aria-label="Change Password">
+                        <div class="profile-panel-header">
+                            <h2>Change Password</h2>
+                        </div>
+                        <div class="profile-panel-body">
+
+                            <p class="change-pw-success" id="changePwSuccess" role="alert">
+                                ✓ Password changed successfully! (UI simulation only)
+                            </p>
+
+                            <form class="change-pw-form" id="changePwForm" novalidate>
+
+                                <!-- Current password -->
+                                <div>
+                                    <label class="profile-edit-label" for="cp-current">Current Password *</label>
+                                    <div class="password-wrap">
+                                        <input class="profile-edit-input" id="cp-current" type="password" placeholder="Enter current password" autocomplete="current-password">
+                                        <button type="button" class="password-toggle" aria-label="Show current password">👁</button>
+                                    </div>
+                                    <span class="field-error" id="cp-current-err" aria-live="polite"></span>
+                                </div>
+
+                                <!-- New password -->
+                                <div>
+                                    <label class="profile-edit-label" for="cp-new">New Password *</label>
+                                    <div class="password-wrap">
+                                        <input class="profile-edit-input" id="cp-new" type="password" placeholder="Create a new password" autocomplete="new-password">
+                                        <button type="button" class="password-toggle" aria-label="Show new password">👁</button>
+                                    </div>
+                                    <div class="strength-bar" aria-hidden="true">
+                                        <div class="strength-fill" id="cp-strength-fill"></div>
+                                    </div>
+                                    <span class="strength-label" id="cp-strength-label" aria-live="polite"></span>
+                                    <ul class="password-reqs" id="cp-pw-reqs" aria-label="Password requirements" style="margin-top:8px">
+                                        <li id="cp-req-len">At least 8 characters</li>
+                                        <li id="cp-req-upper">One uppercase letter</li>
+                                        <li id="cp-req-lower">One lowercase letter</li>
+                                        <li id="cp-req-num">One number</li>
+                                    </ul>
+                                    <span class="field-error" id="cp-new-err" aria-live="polite"></span>
+                                </div>
+
+                                <!-- Confirm new password -->
+                                <div>
+                                    <label class="profile-edit-label" for="cp-confirm">Confirm New Password *</label>
+                                    <div class="password-wrap">
+                                        <input class="profile-edit-input" id="cp-confirm" type="password" placeholder="Re-enter new password" autocomplete="new-password">
+                                        <button type="button" class="password-toggle" aria-label="Show confirm password">👁</button>
+                                    </div>
+                                    <span class="field-error" id="cp-confirm-err" aria-live="polite"></span>
+                                </div>
+
+                                <button type="submit" class="btn btn-primary btn-sm" style="width:fit-content">
+                                    Change Password
+                                </button>
+
+                            </form>
+                        </div>
+                    </section><!-- /#panel-password -->
+
+                </main><!-- /.profile-content -->
+            </div><!-- /.profile-layout -->
+        </div><!-- /.shell -->
+    </div><!-- /.profile-page-wrap -->
+
+    <!-- ============================================================
+         ADDRESS MODAL OVERLAY (shared for shipping & billing)
+         ============================================================ -->
+    <div class="address-modal-overlay" id="addressModalOverlay" aria-modal="true" role="dialog" aria-labelledby="addrModalTitle">
+        <div class="address-modal-card">
+            <button class="modal-close-x" id="addrModalClose" aria-label="Close address modal">×</button>
+            <h3 id="addrModalTitle">Add New Address</h3>
+            <div class="address-modal-fields">
+                <div class="addr-field">
+                    <label for="addrName">Full Name *</label>
+                    <input id="addrName" type="text" placeholder="Recipient's full name" autocomplete="name">
+                </div>
+                <div class="addr-field">
+                    <label for="addrLine1">Address Line 1 *</label>
+                    <input id="addrLine1" type="text" placeholder="Street address" autocomplete="address-line1">
+                </div>
+                <div class="addr-field">
+                    <label for="addrLine2">Address Line 2</label>
+                    <input id="addrLine2" type="text" placeholder="Apartment, suite, unit (optional)" autocomplete="address-line2">
+                </div>
+                <div class="addr-grid-2">
+                    <div class="addr-field">
+                        <label for="addrCity">City *</label>
+                        <input id="addrCity" type="text" placeholder="Colombo" autocomplete="address-level2">
+                    </div>
+                    <div class="addr-field">
+                        <label for="addrPostal">Postal Code</label>
+                        <input id="addrPostal" type="text" placeholder="00300" autocomplete="postal-code">
+                    </div>
+                </div>
+                <div class="addr-field">
+                    <label for="addrPhone">Phone Number</label>
+                    <input id="addrPhone" type="tel" placeholder="+94 77 000 0000" autocomplete="tel">
+                </div>
+            </div><!-- /.address-modal-fields -->
+            <div class="address-modal-actions">
+                <button class="btn btn-ghost btn-sm" id="addrModalCancel">Cancel</button>
+                <button class="btn btn-primary btn-sm" id="addrSaveBtn">Save Address</button>
+            </div>
+        </div>
+    </div><!-- /#addressModalOverlay -->
+
+</div><!-- /.page #profile-page -->

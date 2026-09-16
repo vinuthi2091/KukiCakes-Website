@@ -194,4 +194,5 @@ document.addEventListener('keydown', event => { if (event.key === 'Escape') clos
 renderCatalog();
 saveCart();
 const initialPage = location.hash.slice(1);
-if (['cakes', 'gallery', 'cart', 'checkout', 'confirmation', 'admin'].includes(initialPage)) goPage(initialPage);
+const _knownPages = ['cakes', 'gallery', 'cart', 'checkout', 'confirmation', 'admin', 'signup', 'login', 'profile', 'my-orders', 'auth-guard'];
+if (_knownPages.includes(initialPage)) goPage(initialPage);

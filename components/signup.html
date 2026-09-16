@@ -1,0 +1,141 @@
+<div class="page" id="signup-page">
+    <div class="auth-page">
+        <div class="shell">
+
+            <!-- Page hero -->
+            <div class="auth-hero center">
+                <div class="eyebrow">Join KúkiCakes</div>
+                <h1 class="section-title">Create your account.</h1>
+                <p class="subtext">Register to save your orders, manage your addresses, and place custom cake inquiries with ease.</p>
+            </div>
+
+            <!-- Sign-up card -->
+            <div class="auth-card">
+
+                <!-- Form -->
+                <form id="signupForm" novalidate autocomplete="off">
+                    <div class="form-grid">
+
+                        <!-- Full Name -->
+                        <div class="field full">
+                            <label for="su-name">Full Name *</label>
+                            <input
+                                id="su-name"
+                                name="fullName"
+                                type="text"
+                                placeholder="Amaya Perera"
+                                autocomplete="name"
+                                required
+                            >
+                            <span class="field-error" id="su-name-err" aria-live="polite"></span>
+                        </div>
+
+                        <!-- Email -->
+                        <div class="field full">
+                            <label for="su-email">Email Address *</label>
+                            <input
+                                id="su-email"
+                                name="email"
+                                type="email"
+                                placeholder="amaya@email.com"
+                                autocomplete="email"
+                                required
+                            >
+                            <span class="field-error" id="su-email-err" aria-live="polite"></span>
+                        </div>
+
+                        <!-- Phone -->
+                        <div class="field full">
+                            <label for="su-phone">Phone / WhatsApp *</label>
+                            <input
+                                id="su-phone"
+                                name="phone"
+                                type="tel"
+                                placeholder="+94 77 000 0000"
+                                autocomplete="tel"
+                                required
+                            >
+                            <span class="field-error" id="su-phone-err" aria-live="polite"></span>
+                        </div>
+
+                        <!-- Password -->
+                        <div class="field full">
+                            <label for="su-password">Password *</label>
+                            <div class="password-wrap">
+                                <input
+                                    id="su-password"
+                                    name="password"
+                                    type="password"
+                                    placeholder="Create a strong password"
+                                    autocomplete="new-password"
+                                    required
+                                >
+                                <button type="button" class="password-toggle" aria-label="Show password">👁</button>
+                            </div>
+                            <!-- Strength indicator -->
+                            <div class="strength-bar" aria-hidden="true">
+                                <div class="strength-fill" id="su-strength-fill"></div>
+                            </div>
+                            <span class="strength-label" id="su-strength-label" aria-live="polite"></span>
+                            <!-- Requirements checklist -->
+                            <ul class="password-reqs" id="su-pw-reqs" aria-label="Password requirements">
+                                <li id="req-len">At least 8 characters</li>
+                                <li id="req-upper">One uppercase letter</li>
+                                <li id="req-lower">One lowercase letter</li>
+                                <li id="req-num">One number</li>
+                            </ul>
+                            <span class="field-error" id="su-password-err" aria-live="polite"></span>
+                        </div>
+
+                        <!-- Confirm Password -->
+                        <div class="field full">
+                            <label for="su-confirm">Confirm Password *</label>
+                            <div class="password-wrap">
+                                <input
+                                    id="su-confirm"
+                                    name="confirmPassword"
+                                    type="password"
+                                    placeholder="Re-enter your password"
+                                    autocomplete="new-password"
+                                    required
+                                >
+                                <button type="button" class="password-toggle" aria-label="Show confirm password">👁</button>
+                            </div>
+                            <span class="field-error" id="su-confirm-err" aria-live="polite"></span>
+                        </div>
+
+                    </div><!-- /.form-grid -->
+
+                    <button
+                        type="submit"
+                        class="btn btn-primary"
+                        id="signupSubmitBtn"
+                        style="width:100%;margin-top:6px"
+                    >
+                        Create Account →
+                    </button>
+
+                    <p class="form-note" style="margin-top:14px">
+                        By creating an account you agree to our
+                        <a href="#" style="color:var(--berry)">Terms</a> &amp;
+                        <a href="#" style="color:var(--berry)">Privacy Policy</a>.
+                    </p>
+                </form>
+
+                <!-- Success state (shown after valid submit) -->
+                <div class="auth-success" id="signupSuccess" hidden>
+                    <div class="auth-success-mark">✓</div>
+                    <h2>Account created!</h2>
+                    <p>Your KúkiCakes account is ready. Please log in to continue.</p>
+                    <button class="btn btn-primary" data-page="login">Go to Login →</button>
+                </div>
+
+                <!-- Link to login -->
+                <p class="auth-links">
+                    Already have an account? <a href="#login" data-page="login">Log in →</a>
+                </p>
+
+            </div><!-- /.auth-card -->
+        </div><!-- /.shell -->
+    </div><!-- /.auth-page -->
+</div><!-- /.page #signup-page -->
