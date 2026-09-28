@@ -63,8 +63,9 @@
         }
 
         // Load auth.js AFTER components are in DOM so initAuth() finds all elements
+        // Use a timestamp cache-buster so browsers never serve a stale/cached auth.js
         const script = document.createElement('script');
-        script.src = 'js/auth.js';
+        script.src = 'js/auth.js?v=' + Date.now();
         script.onload = function () {
             console.log('[KúkiCakes] Authentication module loaded.');
         };

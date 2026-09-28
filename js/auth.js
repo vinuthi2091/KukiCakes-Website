@@ -1,12 +1,11 @@
 /* ================================================================
-   KúkiCakes — Frontend Authentication Module   (js/auth.js)
+   KúkiCakes — Authentication Module   (js/auth.js)
    ----------------------------------------------------------------
-   FRONTEND SIMULATION ONLY — localStorage-based mock auth.
-   No real backend, no real sessions, no password hashing.
-   All localStorage calls are isolated in getUser / setUser /
-   clearUser so they can be replaced with API calls later.
-
-   Replace TODO: API stubs are marked with  ← REPLACE WITH API
+   Real PHP + MySQL backend authentication.
+   Session managed server-side via PHP sessions (KUKI_SESS cookie).
+   localStorage is used only for harmless display cache (name/email)
+   to avoid an extra network round-trip for navbar rendering, but
+   all protected operations always verify the server session first.
    ================================================================ */
 
 (function () {
@@ -15,54 +14,89 @@
     /* ============================================================
        CONSTANTS
        ============================================================ */
-    const STORAGE_KEY = 'kukiUser';
-    const PENDING_KEY = 'kukiPendingUser';   // temp registration data
-    const MERGE_KEY = 'kukiCartMergeShown';
+    const DISPLAY_KEY = 'kukiUserDisplay'; // safe display cache only (name, email — no secrets)
+    const MERGE_KEY   = 'kukiCartMergeShown';
 
     /* ============================================================
-       AUTH STATE HELPERS
-       Ready to replace getUser / setUser / clearUser with real
-       API calls (fetch POST /api/login, GET /api/profile, etc.)
+       API HELPERS
        ============================================================ */
 
-    function getUser() {
-        // ← REPLACE WITH API: validate session/token server-side
-        try { return JSON.parse(localStorage.getItem(STORAGE_KEY)); }
+    /**
+     * POST JSON body to a PHP API endpoint.
+     * Returns parsed JSON or throws on network/HTTP error.
+     */
+    async function apiPost(endpoint, data) {
+        const res = await fetch(endpoint, {
+            method: 'POST',
+            credentials: 'same-origin',   // include session cookie
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(data),
+        });
+        const json = await res.json();
+        json._status = res.status;
+        return json;
+    }
+
+    async function apiGet(endpoint) {
+        const res = await fetch(endpoint, {
+            method: 'GET',
+            credentials: 'same-origin',
+        });
+        const json = await res.json();
+        json._status = res.status;
+        return json;
+    }
+
+    async function apiDelete(endpoint) {
+        const res = await fetch(endpoint, {
+            method: 'DELETE',
+            credentials: 'same-origin',
+        });
+        const json = await res.json();
+        json._status = res.status;
+        return json;
+    }
+
+    /* ============================================================
+       AUTH STATE — backed by server session
+       ============================================================ */
+
+    /**
+     * Returns the cached display object {name, email} from
+     * localStorage, or null if not set.
+     * This is purely for fast navbar rendering; never used to
+     * authorise any action.
+     */
+    function getDisplayCache() {
+        try { return JSON.parse(localStorage.getItem(DISPLAY_KEY)); }
         catch { return null; }
     }
 
-    function setUser(userData) {
-        // ← REPLACE WITH API: store session cookie/JWT instead
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(userData));
-        updateNavbar();
+    function setDisplayCache(userData) {
+        const safe = { name: userData.name || '', email: userData.email || '' };
+        localStorage.setItem(DISPLAY_KEY, JSON.stringify(safe));
     }
 
-    function clearUser() {
-        // ← REPLACE WITH API: invalidate session/token server-side
-        localStorage.removeItem(STORAGE_KEY);
+    function clearDisplayCache() {
+        localStorage.removeItem(DISPLAY_KEY);
         localStorage.removeItem(MERGE_KEY);
-        updateNavbar();
+        localStorage.removeItem('kukiUser');
+        localStorage.removeItem('kukiPendingUser');
     }
-
-    // Expose for potential use from other scripts / future API layer
-    window.kukiAuth = { getUser, setUser, clearUser };
 
     /* ============================================================
        NAVBAR — guest / authenticated states
        ============================================================ */
 
-    function updateNavbar() {
-        const user = getUser();
-        const navGuest = document.getElementById('navGuest');
-        const navUser  = document.getElementById('navUser');
+    function updateNavbar(user) {
+        const navGuest     = document.getElementById('navGuest');
+        const navUser      = document.getElementById('navUser');
         const userAvatar   = document.getElementById('userAvatar');
         const userDispName = document.getElementById('userDisplayName');
 
         if (!navGuest || !navUser) return;
 
-        if (user) {
-            // Use .hidden property — correctly removes the HTML `hidden` attribute
-            // (style.display = '' alone does NOT remove the hidden attribute)
+        if (user && user.name) {
             navGuest.hidden = true;
             navUser.hidden  = false;
 
@@ -81,12 +115,38 @@
         }
     }
 
+    /**
+     * Check the server session and update the navbar accordingly.
+     * Uses display cache for instant render, then confirms with server.
+     */
+    async function initNavbar() {
+        // 1. Instant render using cached display info (avoids flash)
+        const cached = getDisplayCache();
+        if (cached) updateNavbar(cached);
+
+        // 2. Verify with the server
+        try {
+            const data = await apiGet('api/check-session.php');
+            if (data.authenticated && data.user) {
+                setDisplayCache(data.user);
+                updateNavbar(data.user);
+            } else {
+                // Session gone — clear cache and show guest nav
+                clearDisplayCache();
+                updateNavbar(null);
+            }
+        } catch (err) {
+            // Network issue — fall back to cached state silently
+            console.warn('[KúkiCakes] Could not verify session:', err);
+        }
+    }
+
     /* ============================================================
        USER DROPDOWN (nav)
        ============================================================ */
 
     function setupUserMenuDropdown() {
-        const btn = document.getElementById('userMenuBtn');
+        const btn      = document.getElementById('userMenuBtn');
         const dropdown = document.getElementById('userDropdown');
         if (!btn || !dropdown) return;
 
@@ -96,13 +156,11 @@
             btn.setAttribute('aria-expanded', String(open));
         });
 
-        // Close on outside click
         document.addEventListener('click', () => {
             dropdown.classList.remove('open');
             btn.setAttribute('aria-expanded', 'false');
         });
 
-        // Close when a menu item is chosen
         dropdown.addEventListener('click', () => {
             dropdown.classList.remove('open');
             btn.setAttribute('aria-expanded', 'false');
@@ -113,8 +171,14 @@
        LOGOUT
        ============================================================ */
 
-    function handleLogout() {
-        clearUser();
+    async function handleLogout() {
+        try {
+            await apiPost('api/logout.php', {});
+        } catch (err) {
+            console.warn('[KúkiCakes] Logout request failed:', err);
+        }
+        clearDisplayCache();
+        updateNavbar(null);
         _toast('You have been logged out. See you soon! 👋');
         if (typeof goPage === 'function') goPage('home');
     }
@@ -128,41 +192,47 @@
        PROTECTED PAGE GUARD
        Capture-phase intercept — runs before site.js bubble handler.
        Redirect unauthenticated users to auth-guard.
+       Auth is verified via server session.
        ============================================================ */
 
     const PROTECTED = ['profile', 'my-orders'];
 
-    document.addEventListener('click', (e) => {
+    document.addEventListener('click', async (e) => {
         const link = e.target.closest('[data-page]');
         if (!link) return;
 
         const page = link.dataset.page;
+        if (!PROTECTED.includes(page)) return;
 
-        if (PROTECTED.includes(page)) {
-            if (!getUser()) {
-                e.stopImmediatePropagation();
-                e.preventDefault();
+        // Check server session before allowing navigation
+        e.stopImmediatePropagation();
+        e.preventDefault();
+
+        try {
+            const data = await apiGet('api/check-session.php');
+            if (!data.authenticated) {
                 if (typeof goPage === 'function') goPage('auth-guard');
                 return;
             }
-            // User is logged in — let site.js handle navigation, then populate data
-            if (page === 'profile') setTimeout(populateProfilePage, 30);
-            if (page === 'my-orders') setTimeout(() => renderOrdersPage('all'), 30);
+            // Authenticated — navigate, then populate
+            if (typeof goPage === 'function') goPage(page);
+            if (page === 'profile')    setTimeout(populateProfilePage, 30);
+            if (page === 'my-orders')  setTimeout(() => renderOrdersPage('all'), 30);
+        } catch (err) {
+            // Network error — deny access to be safe
+            if (typeof goPage === 'function') goPage('auth-guard');
         }
-    }, true); // capture phase
+    }, true);
 
     /* ============================================================
        CHECKOUT PROTECTION
-       Overrides the checkout button click set in site.js.
-       Runs after site.js, so this .onclick wins.
        ============================================================ */
 
     function setupCheckoutProtection() {
         const btn = document.getElementById('checkoutBtn');
         if (!btn) return;
 
-        btn.onclick = () => {
-            // Re-read cart from localStorage (site.js stores it there)
+        btn.onclick = async () => {
             let cart = [];
             try { cart = JSON.parse(localStorage.getItem('kukiCart') || '[]'); } catch { }
 
@@ -170,17 +240,22 @@
                 _toast('Add a cake before checking out 🎂');
                 return;
             }
-            if (!getUser()) {
+
+            try {
+                const data = await apiGet('api/check-session.php');
+                if (!data.authenticated) {
+                    if (typeof goPage === 'function') goPage('auth-guard');
+                } else {
+                    if (typeof goPage === 'function') goPage('checkout');
+                }
+            } catch (err) {
                 if (typeof goPage === 'function') goPage('auth-guard');
-            } else {
-                if (typeof goPage === 'function') goPage('checkout');
             }
         };
     }
 
     /* ============================================================
        CART MERGE NOTIFICATION
-       Show once per login when the cart is non-empty.
        ============================================================ */
 
     function maybeShowCartMergeBanner(firstName) {
@@ -205,7 +280,7 @@
         // Password show/hide toggles
         form.querySelectorAll('.password-toggle').forEach(setupToggle);
 
-        // Live strength + requirements for password field
+        // Live strength + requirements
         const pwInput = document.getElementById('su-password');
         pwInput?.addEventListener('input', () => {
             updateStrength(pwInput.value, 'su-strength-fill', 'su-strength-label');
@@ -218,36 +293,48 @@
             document.getElementById(id)?.addEventListener('blur', () => validateSignupField(field));
         });
 
-        form.addEventListener('submit', (e) => {
+        form.addEventListener('submit', async (e) => {
             e.preventDefault();
             const ok = ['name', 'email', 'phone', 'password', 'confirm'].every(validateSignupField);
             if (!ok) return;
 
-            // ← REPLACE WITH API: POST /api/register
-            const userData = {
-                name: document.getElementById('su-name').value.trim(),
-                email: document.getElementById('su-email').value.trim().toLowerCase(),
-                phone: document.getElementById('su-phone').value.trim(),
-                joinDate: _fmtDate(new Date()),
+            const submitBtn = document.getElementById('signupSubmitBtn');
+            if (submitBtn) { submitBtn.disabled = true; submitBtn.textContent = 'Creating account…'; }
+
+            const payload = {
+                full_name:        document.getElementById('su-name').value.trim(),
+                email:            document.getElementById('su-email').value.trim().toLowerCase(),
+                phone:            document.getElementById('su-phone').value.trim(),
+                password:         document.getElementById('su-password').value,
+                confirm_password: document.getElementById('su-confirm').value,
             };
 
-            // Temporarily store so login page can pre-fill
-            localStorage.setItem(PENDING_KEY, JSON.stringify(userData));
+            try {
+                const data = await apiPost('api/register.php', payload);
 
-            // Show success state
-            form.style.display = 'none';
-            const successEl = document.getElementById('signupSuccess');
-            if (successEl) successEl.removeAttribute('hidden');
+                if (data.success) {
+                    // Show success state — same existing UI
+                    form.style.display = 'none';
+                    const successEl = document.getElementById('signupSuccess');
+                    if (successEl) successEl.removeAttribute('hidden');
+                } else {
+                    _toast(data.message || 'Registration failed. Please try again.');
+                    if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = 'Create Account →'; }
+                }
+            } catch (err) {
+                _toast('Registration failed. Please check your connection.');
+                if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = 'Create Account →'; }
+            }
         });
     }
 
     function validateSignupField(field) {
         const map = {
-            name: ['su-name', 'su-name-err'],
-            email: ['su-email', 'su-email-err'],
-            phone: ['su-phone', 'su-phone-err'],
+            name:     ['su-name',     'su-name-err'],
+            email:    ['su-email',    'su-email-err'],
+            phone:    ['su-phone',    'su-phone-err'],
             password: ['su-password', 'su-password-err'],
-            confirm: ['su-confirm', 'su-confirm-err'],
+            confirm:  ['su-confirm',  'su-confirm-err'],
         };
         const [inputId, errId] = map[field];
         const input = document.getElementById(inputId);
@@ -259,19 +346,19 @@
 
         switch (field) {
             case 'name':
-                if (!val) error = 'Full name is required.';
+                if (!val)           error = 'Full name is required.';
                 else if (val.length < 2) error = 'Name must be at least 2 characters.';
                 break;
             case 'email':
-                if (!val) error = 'Email address is required.';
+                if (!val)           error = 'Email address is required.';
                 else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val)) error = 'Please enter a valid email address.';
                 break;
             case 'phone':
-                if (!val) error = 'Phone number is required.';
+                if (!val)           error = 'Phone number is required.';
                 else if (!/^[+\d\s\-()]{7,20}$/.test(val)) error = 'Please enter a valid phone number.';
                 break;
             case 'password': {
-                if (!val) error = 'Password is required.';
+                if (!val)               error = 'Password is required.';
                 else if (val.length < 8) error = 'Password must be at least 8 characters.';
                 else if (!/[A-Z]/.test(val)) error = 'Include at least one uppercase letter.';
                 else if (!/[0-9]/.test(val)) error = 'Include at least one number.';
@@ -279,7 +366,7 @@
             }
             case 'confirm': {
                 const pw = document.getElementById('su-password')?.value || '';
-                if (!val) error = 'Please confirm your password.';
+                if (!val)          error = 'Please confirm your password.';
                 else if (val !== pw) error = 'Passwords do not match.';
                 break;
             }
@@ -302,7 +389,7 @@
             _togglePasswordVisibility(this);
         });
 
-        // Forgot password
+        // Forgot password (UI only — server-side reset not in scope)
         document.getElementById('forgotPasswordBtn')?.addEventListener('click', () => {
             const msg = document.getElementById('forgotMessage');
             if (msg) msg.removeAttribute('hidden');
@@ -318,47 +405,69 @@
                 );
                 return;
             }
-            // ← REPLACE WITH API: POST /api/forgot-password
-            _toast('Reset link sent! (UI simulation only) 📧');
+            _toast('If an account exists for that email, a reset link will be sent. 📧');
         });
 
-        // Blur validation
-        document.getElementById('li-email')?.addEventListener('blur', () => validateLoginField('email'));
+        // Blur validation & input reset
+        document.getElementById('li-email')?.addEventListener('blur',    () => validateLoginField('email'));
         document.getElementById('li-password')?.addEventListener('blur', () => validateLoginField('password'));
+        document.getElementById('li-email')?.addEventListener('input', () => {
+            const errEl = document.getElementById('li-password-err');
+            if (errEl && errEl.textContent === 'Invalid email or password.') errEl.textContent = '';
+        });
+        document.getElementById('li-password')?.addEventListener('input', () => {
+            const errEl = document.getElementById('li-password-err');
+            if (errEl && errEl.textContent === 'Invalid email or password.') errEl.textContent = '';
+            document.getElementById('li-password')?.classList.remove('is-error');
+        });
 
-        form.addEventListener('submit', (e) => {
+        form.addEventListener('submit', async (e) => {
             e.preventDefault();
             const ok = validateLoginField('email') & validateLoginField('password');
             if (!ok) return;
 
-            const emailVal = document.getElementById('li-email').value.trim().toLowerCase();
+            const submitBtn = document.getElementById('loginSubmitBtn');
+            if (submitBtn) { submitBtn.disabled = true; submitBtn.textContent = 'Logging in…'; }
 
-            // ← REPLACE WITH API: POST /api/login  { email, password }
-            // Check if a pending registration exists for this email
-            let userData = null;
-            try { userData = JSON.parse(localStorage.getItem(PENDING_KEY)); } catch { }
+            const payload = {
+                email:    document.getElementById('li-email').value.trim().toLowerCase(),
+                password: document.getElementById('li-password').value,
+            };
 
-            if (!userData || userData.email !== emailVal) {
-                // Generate a plausible display name from the email
-                userData = {
-                    name: _nameFromEmail(emailVal),
-                    email: emailVal,
-                    phone: '+94 77 000 0000',
-                    joinDate: _fmtDate(new Date()),
-                };
+            try {
+                const data = await apiPost('api/login.php', payload);
+
+                if (data && data._status === 200 && data.success === true && data.user && data.user.customer_id) {
+                    setDisplayCache(data.user);
+                    updateNavbar(data.user);
+                    maybeShowCartMergeBanner(data.user.name.split(' ')[0]);
+
+                    if (typeof goPage === 'function') goPage('profile');
+                    setTimeout(populateProfilePage, 60);
+                } else {
+                    // Failed login — clear any stale display cache and show guest nav
+                    clearDisplayCache();
+                    updateNavbar(null);
+                    // Show generic error from server
+                    const errEl = document.getElementById('li-password-err');
+                    if (errEl) errEl.textContent = data.message || 'Invalid email or password.';
+                    const pwInput = document.getElementById('li-password');
+                    if (pwInput) pwInput.classList.add('is-error');
+                    if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = 'Log In →'; }
+                }
+            } catch (err) {
+                // Network or JSON parse error
+                clearDisplayCache();
+                updateNavbar(null);
+                _toast('Login failed. Please check your connection.');
+                if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = 'Log In →'; }
             }
-
-            setUser(userData);
-            maybeShowCartMergeBanner(userData.name.split(' ')[0]);
-
-            if (typeof goPage === 'function') goPage('profile');
-            setTimeout(populateProfilePage, 60);
         });
     }
 
     function validateLoginField(field) {
         const map = {
-            email: ['li-email', 'li-email-err'],
+            email:    ['li-email',    'li-email-err'],
             password: ['li-password', 'li-password-err'],
         };
         const [inputId, errId] = map[field];
@@ -370,10 +479,10 @@
         let error = '';
 
         if (field === 'email') {
-            if (!val) error = 'Email address is required.';
+            if (!val)           error = 'Email address is required.';
             else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val)) error = 'Please enter a valid email address.';
         } else {
-            if (!input.value) error = 'Password is required.';
+            if (!input.value)   error = 'Password is required.';
         }
 
         _applyFieldState(input, errEl, error);
@@ -384,28 +493,42 @@
        PROFILE PAGE — populate & interactions
        ============================================================ */
 
-    function populateProfilePage() {
-        const user = getUser();
-        if (!user) return;
+    async function populateProfilePage() {
+        try {
+            const data = await apiGet('api/profile.php');
 
-        const initials = (user.name || 'K')
-            .split(' ').filter(Boolean)
-            .map(n => n[0].toUpperCase()).slice(0, 2).join('');
+            if (!data.success || !data.user) {
+                // Not authenticated — redirect to guard
+                if (typeof goPage === 'function') goPage('auth-guard');
+                return;
+            }
 
-        _setText('profileAvatar', initials);
-        _setText('profileSidebarName', user.name || '—');
-        _setText('profileSidebarEmail', user.email || '—');
-        _setText('profileName', user.name || '—');
-        _setText('profileJoinDate', user.joinDate || '—');
-        _setText('profileEmail', user.email || '—');
-        _setText('profilePhone', user.phone || 'Not provided');
+            const user = data.user;
 
-        // Pre-fill email in contact edit form (read-only)
-        const emailDisp = document.getElementById('profileEmailDisplay');
-        if (emailDisp) emailDisp.value = user.email || '';
+            const initials = (user.name || 'K')
+                .split(' ').filter(Boolean)
+                .map(n => n[0].toUpperCase()).slice(0, 2).join('');
 
-        // Mini orders list
-        renderMiniOrders();
+            _setText('profileAvatar',      initials);
+            _setText('profileSidebarName', user.name  || '—');
+            _setText('profileSidebarEmail',user.email || '—');
+            _setText('profileName',        user.name  || '—');
+            _setText('profileJoinDate',    user.joinDate || '—');
+            _setText('profileEmail',       user.email || '—');
+            _setText('profilePhone',       user.phone || 'Not provided');
+
+            // Pre-fill email in contact edit form (read-only)
+            const emailDisp = document.getElementById('profileEmailDisplay');
+            if (emailDisp) emailDisp.value = user.email || '';
+
+            // Mini orders (still uses demo data — orders DB integration
+            // requires orders to be linked to authenticated users)
+            renderMiniOrders();
+
+        } catch (err) {
+            console.error('[KúkiCakes] Could not load profile:', err);
+            _toast('Could not load profile. Please try again.');
+        }
     }
 
     function setupProfilePage() {
@@ -414,36 +537,39 @@
             btn.addEventListener('click', () => {
                 const panel = btn.dataset.panel;
 
-                // Update active sidebar item
                 document.querySelectorAll('.sidebar-nav-item').forEach(b => b.classList.remove('active'));
                 btn.classList.add('active');
 
-                // Show matching panel
                 document.querySelectorAll('.profile-panel').forEach(p => p.classList.remove('active'));
                 document.getElementById(`panel-${panel}`)?.classList.add('active');
 
-                // Special: orders panel → go to full orders page
                 if (panel === 'orders') {
                     if (typeof goPage === 'function') goPage('my-orders');
                     setTimeout(() => renderOrdersPage('all'), 50);
                 }
+
+                // Load addresses on-demand
+                if (panel === 'shipping') loadAndRenderAddresses('shipping');
+                if (panel === 'billing')  loadAndRenderAddresses('billing');
             });
         });
 
         setupEditableSection('personal', 'personalDisplay', 'personalEdit', 'personalEditBtn', 'personalSaveBtn', 'personalCancelBtn', savePersInfo);
-        setupEditableSection('contact', 'contactDisplay', 'contactEdit', 'contactEditBtn', 'contactSaveBtn', 'contactCancelBtn', saveContactInfo);
+        setupEditableSection('contact',  'contactDisplay',  'contactEdit',  'contactEditBtn',  'contactSaveBtn',  'contactCancelBtn',  saveContactInfo);
 
         setupChangePasswordForm();
         setupAddressManagement();
 
-        if (getUser()) populateProfilePage();
+        // Populate profile if already on profile page
+        const isOnProfile = document.getElementById('profile-page')?.classList.contains('active');
+        if (isOnProfile) populateProfilePage();
     }
 
     function setupEditableSection(prefix, displayId, editId, editBtnId, saveBtnId, cancelBtnId, saveFn) {
         const displayEl = document.getElementById(displayId);
-        const editEl = document.getElementById(editId);
-        const editBtn = document.getElementById(editBtnId);
-        const saveBtn = document.getElementById(saveBtnId);
+        const editEl    = document.getElementById(editId);
+        const editBtn   = document.getElementById(editBtnId);
+        const saveBtn   = document.getElementById(saveBtnId);
         const cancelBtn = document.getElementById(cancelBtnId);
 
         if (!editBtn || !saveBtn || !cancelBtn) return;
@@ -452,7 +578,7 @@
             displayEl?.classList.add('hidden');
             editEl?.classList.remove('hidden');
             editBtn.style.display = 'none';
-            // Pre-fill edit inputs
+            // Pre-fill edit inputs from current displayed values
             if (prefix === 'personal') {
                 const input = document.getElementById('editNameInput');
                 if (input) input.value = document.getElementById('profileName')?.textContent || '';
@@ -461,7 +587,8 @@
                 const input = document.getElementById('editPhoneInput');
                 if (input) input.value = document.getElementById('profilePhone')?.textContent || '';
                 const emailDisp = document.getElementById('profileEmailDisplay');
-                if (emailDisp) emailDisp.value = getUser()?.email || '';
+                const cachedEmail = getDisplayCache()?.email || '';
+                if (emailDisp) emailDisp.value = cachedEmail;
             }
         });
 
@@ -471,41 +598,58 @@
             editBtn.style.display = '';
         });
 
-        saveBtn.addEventListener('click', () => {
-            const ok = saveFn();
+        saveBtn.addEventListener('click', async () => {
+            const ok = await saveFn();
             if (!ok) return;
             displayEl?.classList.remove('hidden');
             editEl?.classList.add('hidden');
             editBtn.style.display = '';
-            _toast('Changes saved ✓');
         });
     }
 
-    function savePersInfo() {
-        const input = document.getElementById('editNameInput');
-        const errEl = document.getElementById('editNameErr');
+    async function savePersInfo() {
+        const input  = document.getElementById('editNameInput');
+        const errEl  = document.getElementById('editNameErr');
         const newName = input?.value.trim();
+
         if (!newName) {
             _applyFieldState(input, errEl, 'Full name is required.');
             return false;
         }
         _applyFieldState(input, errEl, '');
-        const user = getUser();
-        if (!user) return false;
-        user.name = newName;
-        setUser(user);
-        _setText('profileName', newName);
-        _setText('profileSidebarName', newName);
-        _setText('profileAvatar', newName.split(' ').filter(Boolean).map(n => n[0].toUpperCase()).slice(0, 2).join(''));
-        _setText('userAvatar', newName.split(' ').filter(Boolean).map(n => n[0].toUpperCase()).slice(0, 2).join(''));
-        _setText('userDisplayName', newName.split(' ')[0]);
-        return true;
+
+        try {
+            const data = await apiPost('api/update-profile.php', {
+                full_name: newName,
+                phone: document.getElementById('profilePhone')?.textContent || '',
+            });
+
+            if (!data.success) {
+                _toast(data.message || 'Update failed.');
+                return false;
+            }
+
+            const user = data.user;
+            _setText('profileName',        user.name);
+            _setText('profileSidebarName', user.name);
+            const initials = user.name.split(' ').filter(Boolean).map(n => n[0].toUpperCase()).slice(0, 2).join('');
+            _setText('profileAvatar',  initials);
+            _setText('userAvatar',     initials);
+            _setText('userDisplayName', user.name.split(' ')[0]);
+            setDisplayCache(user);
+            _toast('Changes saved ✓');
+            return true;
+        } catch (err) {
+            _toast('Update failed. Please check your connection.');
+            return false;
+        }
     }
 
-    function saveContactInfo() {
-        const input = document.getElementById('editPhoneInput');
-        const errEl = document.getElementById('editPhoneErr');
+    async function saveContactInfo() {
+        const input    = document.getElementById('editPhoneInput');
+        const errEl    = document.getElementById('editPhoneErr');
         const newPhone = input?.value.trim();
+
         if (!newPhone) {
             _applyFieldState(input, errEl, 'Phone number is required.');
             return false;
@@ -515,12 +659,25 @@
             return false;
         }
         _applyFieldState(input, errEl, '');
-        const user = getUser();
-        if (!user) return false;
-        user.phone = newPhone;
-        setUser(user);
-        _setText('profilePhone', newPhone);
-        return true;
+
+        try {
+            const data = await apiPost('api/update-profile.php', {
+                full_name: document.getElementById('profileName')?.textContent || '',
+                phone:     newPhone,
+            });
+
+            if (!data.success) {
+                _toast(data.message || 'Update failed.');
+                return false;
+            }
+
+            _setText('profilePhone', data.user.phone || 'Not provided');
+            _toast('Changes saved ✓');
+            return true;
+        } catch (err) {
+            _toast('Update failed. Please check your connection.');
+            return false;
+        }
     }
 
     /* ============================================================
@@ -531,90 +688,128 @@
         const form = document.getElementById('changePwForm');
         if (!form) return;
 
-        // Show/hide toggles
         form.querySelectorAll('.password-toggle').forEach(setupToggle);
 
-        // Strength for new password
         document.getElementById('cp-new')?.addEventListener('input', function () {
             updateStrength(this.value, 'cp-strength-fill', 'cp-strength-label');
             updateReqs(this.value, 'cp-req-len', 'cp-req-upper', 'cp-req-lower', 'cp-req-num');
         });
 
-        form.addEventListener('submit', (e) => {
+        form.addEventListener('submit', async (e) => {
             e.preventDefault();
             let ok = true;
 
             const current = document.getElementById('cp-current');
-            const newPw = document.getElementById('cp-new');
+            const newPw   = document.getElementById('cp-new');
             const confirm = document.getElementById('cp-confirm');
 
-            if (!current?.value) { _applyFieldState(current, document.getElementById('cp-current-err'), 'Current password is required.'); ok = false; }
-            else _applyFieldState(current, document.getElementById('cp-current-err'), '');
+            if (!current?.value) {
+                _applyFieldState(current, document.getElementById('cp-current-err'), 'Current password is required.');
+                ok = false;
+            } else {
+                _applyFieldState(current, document.getElementById('cp-current-err'), '');
+            }
 
             if (!newPw?.value || newPw.value.length < 8) {
                 _applyFieldState(newPw, document.getElementById('cp-new-err'), 'New password must be at least 8 characters.');
                 ok = false;
-            } else _applyFieldState(newPw, document.getElementById('cp-new-err'), '');
+            } else {
+                _applyFieldState(newPw, document.getElementById('cp-new-err'), '');
+            }
 
             if (confirm?.value !== newPw?.value) {
                 _applyFieldState(confirm, document.getElementById('cp-confirm-err'), 'Passwords do not match.');
                 ok = false;
-            } else _applyFieldState(confirm, document.getElementById('cp-confirm-err'), '');
+            } else {
+                _applyFieldState(confirm, document.getElementById('cp-confirm-err'), '');
+            }
 
             if (!ok) return;
 
-            // ← REPLACE WITH API: POST /api/change-password
-            const successEl = document.getElementById('changePwSuccess');
-            if (successEl) successEl.classList.add('show');
-            form.reset();
-            document.getElementById('cp-strength-fill').className = 'strength-fill';
-            document.getElementById('cp-strength-label').textContent = '';
-            document.querySelectorAll('#cp-pw-reqs li').forEach(li => li.classList.remove('met'));
-            setTimeout(() => successEl?.classList.remove('show'), 5000);
+            const submitBtn = form.querySelector('button[type="submit"]');
+            if (submitBtn) { submitBtn.disabled = true; submitBtn.textContent = 'Changing…'; }
+
+            try {
+                const data = await apiPost('api/change-password.php', {
+                    current_password: current.value,
+                    new_password:     newPw.value,
+                    confirm_password: confirm.value,
+                });
+
+                if (data.success) {
+                    const successEl = document.getElementById('changePwSuccess');
+                    if (successEl) {
+                        successEl.textContent = '✓ Password changed successfully!';
+                        successEl.classList.add('show');
+                    }
+                    form.reset();
+                    document.getElementById('cp-strength-fill').className = 'strength-fill';
+                    document.getElementById('cp-strength-label').textContent = '';
+                    document.querySelectorAll('#cp-pw-reqs li').forEach(li => li.classList.remove('met'));
+                    setTimeout(() => successEl?.classList.remove('show'), 5000);
+                } else {
+                    if (data._status === 401) {
+                        _applyFieldState(current, document.getElementById('cp-current-err'), data.message);
+                    } else {
+                        _toast(data.message || 'Password change failed.');
+                    }
+                }
+            } catch (err) {
+                _toast('Password change failed. Please check your connection.');
+            } finally {
+                if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = 'Change Password'; }
+            }
         });
     }
 
     /* ============================================================
        ADDRESS MANAGEMENT (Shipping & Billing)
+       Connected to real MySQL via /api/addresses.php
        ============================================================ */
 
-    // Dummy seed data (frontend-only; replace with API calls)
-    const ADDR_DB = {
-        shipping: [
-            { id: 1, name: 'Amaya Perera', line1: '42 Galle Road', line2: 'Colombo 03', city: 'Colombo', postal: '00300', phone: '+94 77 123 4567', isDefault: true },
-        ],
-        billing: [
-            { id: 1, name: 'Amaya Perera', line1: '42 Galle Road', line2: 'Colombo 03', city: 'Colombo', postal: '00300', phone: '+94 77 123 4567', isDefault: true },
-        ],
-    };
-
     function setupAddressManagement() {
-        renderAddresses('shipping');
-        renderAddresses('billing');
+        // Addresses are loaded on-demand when the panel is activated
         setupAddressModal();
     }
 
-    function renderAddresses(type) {
+    async function loadAndRenderAddresses(type) {
         const grid = document.getElementById(`${type}AddrGrid`);
         if (!grid) return;
 
-        const list = ADDR_DB[type] || [];
+        grid.innerHTML = '<p style="color:var(--muted);padding:1rem 0">Loading…</p>';
+
+        try {
+            const data = await apiGet(`api/addresses.php?type=${type}`);
+            if (!data.success) {
+                grid.innerHTML = '<p style="color:var(--muted)">Could not load addresses.</p>';
+                return;
+            }
+            renderAddresses(type, data.addresses || []);
+        } catch (err) {
+            grid.innerHTML = '<p style="color:var(--muted)">Could not load addresses.</p>';
+        }
+    }
+
+    function renderAddresses(type, list) {
+        const grid = document.getElementById(`${type}AddrGrid`);
+        if (!grid) return;
+
         grid.innerHTML = list.map(addr => `
-            <div class="address-card${addr.isDefault ? ' is-default' : ''}">
-                ${addr.isDefault ? '<span class="address-default-badge">✦ Default</span>' : ''}
-                <div class="address-name">${_esc(addr.name)}</div>
+            <div class="address-card${addr.is_default ? ' is-default' : ''}">
+                ${addr.is_default ? '<span class="address-default-badge">✦ Default</span>' : ''}
+                <div class="address-name">${_esc(addr.full_name)}</div>
                 <div class="address-line">
                     ${_esc(addr.line1)}<br>
                     ${addr.line2 ? _esc(addr.line2) + '<br>' : ''}
                     ${_esc(addr.city)}${addr.postal ? ', ' + _esc(addr.postal) : ''}<br>
-                    ${_esc(addr.phone)}
+                    ${addr.phone ? _esc(addr.phone) : ''}
                 </div>
                 <div class="address-actions">
-                    ${!addr.isDefault
-                ? `<button class="address-btn" onclick="kukiSetDefault('${type}',${addr.id})">Set Default</button>`
-                : ''}
-                    <button class="address-btn" onclick="kukiEditAddr('${type}',${addr.id})">Edit</button>
-                    <button class="address-btn address-btn-delete" onclick="kukiDeleteAddr('${type}',${addr.id})">Delete</button>
+                    ${!addr.is_default
+                        ? `<button class="address-btn" onclick="kukiSetDefault('${type}',${addr.address_id})">Set Default</button>`
+                        : ''}
+                    <button class="address-btn" onclick="kukiEditAddr('${type}',${addr.address_id})">Edit</button>
+                    <button class="address-btn address-btn-delete" onclick="kukiDeleteAddr('${type}',${addr.address_id})">Delete</button>
                 </div>
             </div>
         `).join('') + `
@@ -624,47 +819,77 @@
             </button>
         `;
 
-        // Bind the add-address button created in innerHTML
         grid.querySelector(`[data-addr-type="${type}"]`)?.addEventListener('click', () => {
             openAddressModal(type, null);
         });
     }
 
     // Global helpers (called from inline onclick)
-    window.kukiSetDefault = function (type, id) {
-        ADDR_DB[type]?.forEach(a => a.isDefault = (a.id === id));
-        renderAddresses(type);
+    window.kukiSetDefault = async function (type, id) {
+        try {
+            await apiPost('api/addresses.php', {
+                address_id: id, type,
+                // Fetch current data to re-send
+                full_name: '', line1: '', city: '', is_default: true,
+            });
+        } catch (err) { /* ignore */ }
+        // Re-load to get the server-confirmed state
+        // First fetch current data for the address being set as default
+        try {
+            const listData = await apiGet(`api/addresses.php?type=${type}`);
+            const addr = (listData.addresses || []).find(a => a.address_id === id);
+            if (addr) {
+                await apiPost('api/addresses.php', {
+                    address_id: id, type,
+                    full_name: addr.full_name, line1: addr.line1, line2: addr.line2 || '',
+                    city: addr.city, postal: addr.postal || '', phone: addr.phone || '',
+                    is_default: true,
+                });
+            }
+        } catch (err) { /* ignore */ }
+        loadAndRenderAddresses(type);
         _toast('Default address updated ✓');
     };
-    window.kukiEditAddr = function (type, id) {
-        const addr = ADDR_DB[type]?.find(a => a.id === id);
-        if (addr) openAddressModal(type, addr);
+
+    window.kukiEditAddr = async function (type, id) {
+        try {
+            const data = await apiGet(`api/addresses.php?type=${type}`);
+            const addr = (data.addresses || []).find(a => a.address_id === id);
+            if (addr) openAddressModal(type, addr);
+        } catch (err) {
+            _toast('Could not load address data.');
+        }
     };
-    window.kukiDeleteAddr = function (type, id) {
+
+    window.kukiDeleteAddr = async function (type, id) {
         if (!confirm('Remove this address?')) return;
-        ADDR_DB[type] = (ADDR_DB[type] || []).filter(a => a.id !== id);
-        renderAddresses(type);
-        _toast('Address removed.');
+        try {
+            await apiDelete(`api/addresses.php?id=${id}`);
+            loadAndRenderAddresses(type);
+            _toast('Address removed.');
+        } catch (err) {
+            _toast('Could not delete address.');
+        }
     };
 
     // Modal state
     let _modalType = null;
-    let _modalId = null;
+    let _modalAddrId = null;
 
     function openAddressModal(type, addr) {
-        _modalType = type;
-        _modalId = addr ? addr.id : null;
+        _modalType   = type;
+        _modalAddrId = addr ? addr.address_id : null;
 
         const overlay = document.getElementById('addressModalOverlay');
         if (!overlay) return;
 
         _setText('addrModalTitle', addr ? 'Edit Address' : 'Add New Address');
-        _setVal('addrName', addr?.name || '');
-        _setVal('addrLine1', addr?.line1 || '');
-        _setVal('addrLine2', addr?.line2 || '');
-        _setVal('addrCity', addr?.city || '');
-        _setVal('addrPostal', addr?.postal || '');
-        _setVal('addrPhone', addr?.phone || '');
+        _setVal('addrName',   addr?.full_name || '');
+        _setVal('addrLine1',  addr?.line1     || '');
+        _setVal('addrLine2',  addr?.line2     || '');
+        _setVal('addrCity',   addr?.city      || '');
+        _setVal('addrPostal', addr?.postal    || '');
+        _setVal('addrPhone',  addr?.phone     || '');
 
         overlay.classList.add('open');
         document.getElementById('addrName')?.focus();
@@ -672,63 +897,61 @@
 
     function closeAddressModal() {
         document.getElementById('addressModalOverlay')?.classList.remove('open');
-        _modalType = null;
-        _modalId = null;
+        _modalType   = null;
+        _modalAddrId = null;
     }
 
     function setupAddressModal() {
-        document.getElementById('addrModalClose')?.addEventListener('click', closeAddressModal);
+        document.getElementById('addrModalClose')?.addEventListener('click',  closeAddressModal);
         document.getElementById('addrModalCancel')?.addEventListener('click', closeAddressModal);
 
-        // Close on backdrop click
         document.getElementById('addressModalOverlay')?.addEventListener('click', (e) => {
             if (e.target === e.currentTarget) closeAddressModal();
         });
 
-        // Escape key
         document.addEventListener('keydown', (e) => {
             if (e.key === 'Escape') closeAddressModal();
         });
 
-        document.getElementById('addrSaveBtn')?.addEventListener('click', () => {
-            const name = document.getElementById('addrName')?.value.trim();
+        document.getElementById('addrSaveBtn')?.addEventListener('click', async () => {
+            const name  = document.getElementById('addrName')?.value.trim();
             const line1 = document.getElementById('addrLine1')?.value.trim();
-            const city = document.getElementById('addrCity')?.value.trim();
+            const city  = document.getElementById('addrCity')?.value.trim();
 
             if (!name || !line1 || !city) {
                 _toast('Please fill in Name, Address, and City.');
                 return;
             }
 
-            const type = _modalType;
-            if (!type) return;
-
-            const newAddr = {
-                id: _modalId || Date.now(),
-                name,
+            const payload = {
+                type:       _modalType,
+                address_id: _modalAddrId || undefined,
+                full_name:  name,
                 line1,
-                line2: document.getElementById('addrLine2')?.value.trim() || '',
+                line2:   document.getElementById('addrLine2')?.value.trim()  || '',
                 city,
-                postal: document.getElementById('addrPostal')?.value.trim() || '',
-                phone: document.getElementById('addrPhone')?.value.trim() || '',
-                isDefault: ADDR_DB[type].length === 0,
+                postal:  document.getElementById('addrPostal')?.value.trim() || '',
+                phone:   document.getElementById('addrPhone')?.value.trim()  || '',
             };
 
-            if (_modalId) {
-                const idx = ADDR_DB[type].findIndex(a => a.id === _modalId);
-                if (idx >= 0) ADDR_DB[type][idx] = { ...ADDR_DB[type][idx], ...newAddr };
-            } else {
-                ADDR_DB[type].push(newAddr);
+            try {
+                const data = await apiPost('api/addresses.php', payload);
+                if (!data.success) {
+                    _toast(data.message || 'Could not save address.');
+                    return;
+                }
+                loadAndRenderAddresses(_modalType);
+                closeAddressModal();
+                _toast('Address saved ✓');
+            } catch (err) {
+                _toast('Could not save address. Please try again.');
             }
-
-            renderAddresses(type);
-            closeAddressModal();
-            _toast('Address saved ✓');
         });
     }
 
     /* ============================================================
-       MY ORDERS — dummy data + rendering
+       MY ORDERS — dummy display data
+       (Orders are not yet linked to auth users in the DB orders table)
        ============================================================ */
 
     const ORDERS = [
@@ -776,7 +999,7 @@
     };
 
     function renderOrdersPage(filterStatus) {
-        const list = document.getElementById('ordersList');
+        const list  = document.getElementById('ordersList');
         const empty = document.getElementById('ordersEmpty');
         if (!list) return;
 
@@ -827,7 +1050,7 @@
 
     window.kukiToggleDetails = function (orderId) {
         const details = document.getElementById(`odetails-${orderId}`);
-        const btn = document.getElementById(`ocard-${orderId}`)?.querySelector('.order-view-btn');
+        const btn     = document.getElementById(`ocard-${orderId}`)?.querySelector('.order-view-btn');
         if (!details) return;
         const hidden = details.style.display === 'none';
         details.style.display = hidden ? 'grid' : 'none';
@@ -849,7 +1072,6 @@
         renderOrdersPage('all');
     }
 
-    // Mini orders in the profile panel
     function renderMiniOrders() {
         const container = document.getElementById('profileOrdersMini');
         if (!container) return;
@@ -882,9 +1104,7 @@
        ============================================================ */
 
     function _toast(msg) {
-        // Re-use site.js showToast if available, otherwise fallback
         if (typeof showToast === 'function') { showToast(msg); return; }
-        // Minimal fallback
         const el = document.querySelector('.toast');
         if (!el) return;
         el.textContent = msg;
@@ -917,17 +1137,6 @@
             .replace(/"/g, '&quot;');
     }
 
-    function _fmtDate(d) {
-        return d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
-    }
-
-    function _nameFromEmail(email) {
-        return (email.split('@')[0] || 'User')
-            .split(/[._\-]/)
-            .map(p => p.charAt(0).toUpperCase() + p.slice(1))
-            .join(' ');
-    }
-
     function setupToggle(btn) {
         btn.addEventListener('click', function () {
             _togglePasswordVisibility(this);
@@ -944,32 +1153,32 @@
     }
 
     function updateStrength(pw, fillId, labelId) {
-        const fill = document.getElementById(fillId);
+        const fill  = document.getElementById(fillId);
         const label = document.getElementById(labelId);
         if (!fill || !label) return;
 
         if (!pw) { fill.className = 'strength-fill'; label.textContent = ''; label.className = 'strength-label'; return; }
 
         let score = 0;
-        if (pw.length >= 8) score++;
+        if (pw.length >= 8)            score++;
         if (/[A-Z]/.test(pw) && /[a-z]/.test(pw)) score++;
-        if (/[0-9]/.test(pw)) score++;
-        if (/[^A-Za-z0-9]/.test(pw)) score++;
+        if (/[0-9]/.test(pw))          score++;
+        if (/[^A-Za-z0-9]/.test(pw))  score++;
 
         const level = score <= 1 ? 'weak' : score <= 3 ? 'moderate' : 'strong';
-        const text = { weak: 'Weak', moderate: 'Moderate', strong: 'Strong' }[level];
+        const text  = { weak: 'Weak', moderate: 'Moderate', strong: 'Strong' }[level];
 
-        fill.className = `strength-fill ${level}`;
+        fill.className  = `strength-fill ${level}`;
         label.className = `strength-label ${level}`;
         label.textContent = text;
     }
 
     function updateReqs(pw, lenId, upperId, lowerId, numId) {
         const toggle = (id, met) => document.getElementById(id)?.classList.toggle('met', met);
-        toggle(lenId, pw.length >= 8);
+        toggle(lenId,   pw.length >= 8);
         toggle(upperId, /[A-Z]/.test(pw));
         toggle(lowerId, /[a-z]/.test(pw));
-        toggle(numId, /[0-9]/.test(pw));
+        toggle(numId,   /[0-9]/.test(pw));
     }
 
     /* ============================================================
@@ -977,7 +1186,13 @@
        ============================================================ */
 
     function initAuth() {
-        updateNavbar();
+        // Clean up any legacy mock auth keys from previous browser sessions
+        try {
+            localStorage.removeItem('kukiUser');
+            localStorage.removeItem('kukiPendingUser');
+        } catch (_) {}
+
+        initNavbar();             // check server session and update navbar
         setupUserMenuDropdown();
         setupLogoutButtons();
         setupSignupForm();
@@ -989,10 +1204,9 @@
 
         // Handle direct deep-link to profile (e.g. hash #profile)
         const hash = location.hash.slice(1);
-        if (hash === 'profile' && getUser()) setTimeout(populateProfilePage, 120);
+        if (hash === 'profile') setTimeout(populateProfilePage, 120);
     }
 
     initAuth();
-
 
 })();
