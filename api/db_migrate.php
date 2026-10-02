@@ -62,7 +62,60 @@ $pdo->exec($createAddresses);
 $results[] = "✓ Table `user_addresses` created (or already existed).";
 
 // ---------------------------------------------------------------
-// 3. Done
+// 3. Create `password_resets` table if it doesn't exist
+// ---------------------------------------------------------------
+$createResets = "
+CREATE TABLE IF NOT EXISTS `password_resets` (
+    `reset_id`     INT(11) NOT NULL AUTO_INCREMENT,
+    `customer_id`  INT(11) NOT NULL,
+    `token_hash`   VARCHAR(64) NOT NULL,
+    `expires_at`   DATETIME NOT NULL,
+    `used_at`      DATETIME DEFAULT NULL,
+    `created_at`   TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (`reset_id`),
+    INDEX `idx_token_hash` (`token_hash`),
+    INDEX `idx_customer_id` (`customer_id`),
+    CONSTRAINT `fk_reset_customer` FOREIGN KEY (`customer_id`)
+        REFERENCES `customer` (`customer_id`) ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+";
+$pdo->exec($createResets);
+$results[] = "✓ Table `password_resets` created (or already existed).";
+
+// ---------------------------------------------------------------
+// 4. Create `user_cart_items` table if it doesn't exist
+// ---------------------------------------------------------------
+$createCart = "
+CREATE TABLE IF NOT EXISTS `user_cart_items` (
+    `cart_item_id` INT(11) NOT NULL AUTO_INCREMENT,
+    `customer_id`  INT(11) NOT NULL,
+    `product_id`   INT(11) NOT NULL,
+    `weight`       VARCHAR(50) NOT NULL DEFAULT '500g',
+    `flavor`       VARCHAR(100) NOT NULL DEFAULT '',
+    `note`         TEXT DEFAULT NULL,
+    `quantity`     INT(11) NOT NULL DEFAULT 1,
+    `item_data`    TEXT DEFAULT NULL,
+    `created_at`   TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    `updated_at`   TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    PRIMARY KEY (`cart_item_id`),
+    INDEX `idx_cart_customer` (`customer_id`),
+    CONSTRAINT `fk_cart_customer` FOREIGN KEY (`customer_id`)
+        REFERENCES `customer` (`customer_id`) ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+";
+$pdo->exec($createCart);
+
+// Check if item_data column exists (for upgrade)
+$checkCol = $pdo->prepare("SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS
+    WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'user_cart_items' AND COLUMN_NAME = 'item_data'");
+$checkCol->execute();
+if ($checkCol->fetchColumn() == 0) {
+    $pdo->exec("ALTER TABLE `user_cart_items` ADD COLUMN `item_data` TEXT DEFAULT NULL AFTER `quantity`");
+}
+$results[] = "✓ Table `user_cart_items` created (or already existed).";
+
+// ---------------------------------------------------------------
+// 5. Done
 // ---------------------------------------------------------------
 echo "KúkiCakes — Auth DB Migration\n";
 echo str_repeat('=', 40) . "\n";

@@ -6,6 +6,9 @@
  * Sets JSON headers, starts a secure session, and provides helpers.
  */
 
+// ── Application timezone ───────────────────────────────────────
+date_default_timezone_set('Asia/Colombo');
+
 // ── JSON + security headers ────────────────────────────────────
 header('Content-Type: application/json; charset=utf-8');
 header('X-Content-Type-Options: nosniff');
@@ -36,6 +39,13 @@ function respond(array $data, int $status = 200): never {
     http_response_code($status);
     echo json_encode($data, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
     exit;
+}
+
+/**
+ * Check if current session has an authenticated customer.
+ */
+function isAuthenticated(): bool {
+    return !empty($_SESSION['customer_id']);
 }
 
 /**

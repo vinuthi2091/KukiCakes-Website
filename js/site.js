@@ -29,15 +29,24 @@ function renderCatalog() {
 	$('#galleryGrid').innerHTML = gallery.map(item => `<article class="gallery-item"><img src="${item.img}" alt="${item.title}"><div class="gallery-overlay"><b>${item.title}</b></div></article>`).join('');
 }
 
-function goPage(page) {
+function goPage(rawPage, preserveQuery = true) {
+	const raw = String(rawPage || '').replace(/^#/, '');
+	const targetRoute = raw.split('?')[0].split('&')[0];
+	let page = targetRoute;
+	if (page === 'forgot-password') page = 'login';
+	if (page === 'account') page = 'profile';
+	const query = raw.includes('?') ? raw.slice(raw.indexOf('?')) : (preserveQuery && location.hash.includes('?') ? location.hash.slice(location.hash.indexOf('?')) : '');
+
 	document.querySelectorAll('.page').forEach(item => item.classList.toggle('active', item.id === `${page}-page`));
-	document.querySelectorAll('[data-page]').forEach(item => item.classList.toggle('active', item.dataset.page === page));
+	document.querySelectorAll('[data-page]').forEach(item => item.classList.toggle('active', item.dataset.page === page || item.dataset.page === targetRoute));
 	$('#navLinks').classList.remove('open');
 	if (page === 'cart') renderCart();
 	if (page === 'checkout') renderCheckout();
 	if (page === 'confirmation') renderConfirmation();
 	window.scrollTo({ top: 0, behavior: 'smooth' });
-	history.replaceState(null, '', `#${page}`);
+
+	const displayRoute = (targetRoute === 'account') ? 'account' : (targetRoute === 'forgot-password' ? 'login' : page);
+	history.replaceState(null, '', `#${displayRoute}${query}`);
 }
 
 function openProduct(id) {
@@ -58,11 +67,19 @@ function openProduct(id) {
 
 function closeModal() { $('#productModal').classList.remove('open'); document.body.style.overflow = ''; }
 
-function saveCart() {
+function saveCart(sync = true) {
 	localStorage.setItem('kukiCart', JSON.stringify(cart));
 	$('#cartCount').textContent = cart.reduce((total, item) => total + item.qty, 0);
 	renderCart();
+	if (sync && typeof window.syncCartWithServer === 'function') {
+		window.syncCartWithServer(cart);
+	}
 }
+
+window.setClientCart = function(newCart) {
+	cart = Array.isArray(newCart) ? newCart : [];
+	saveCart(false);
+};
 
 function matchesCartItem(item, itemId, weight, flavor, note) {
 	return item.id === itemId && (item.weight || '500g') === weight && (item.flavor || '') === flavor && (item.note || '') === note;
@@ -97,7 +114,13 @@ function showToast(message) { const toast = $('#toast'); toast.textContent = mes
 
 document.addEventListener('click', event => {
 	const pageLink = event.target.closest('[data-page]');
-	if (pageLink) { event.preventDefault(); goPage(pageLink.dataset.page); return; }
+	if (pageLink) {
+		event.preventDefault();
+		const href = pageLink.getAttribute('href') || '';
+		const target = (href.startsWith('#') && href.includes('?')) ? href.slice(1) : pageLink.dataset.page;
+		goPage(target);
+		return;
+	}
 	const scrollLink = event.target.closest('[data-scroll]');
 	if (scrollLink) { event.preventDefault(); goPage('home'); setTimeout(() => document.getElementById(scrollLink.dataset.scroll)?.scrollIntoView({ behavior: 'smooth' }), 100); return; }
 	const productLink = event.target.closest('[data-product]');
@@ -180,6 +203,9 @@ if ($('#checkoutForm')) $('#checkoutForm').onsubmit = event => {
 	localStorage.setItem('kukiLastOrder', JSON.stringify(order));
 	cart = [];
 	saveCart();
+	if (typeof window.clearServerCart === 'function') {
+		window.clearServerCart();
+	}
 	goPage('confirmation');
 };
 document.querySelectorAll('input[name="payment"]').forEach(input => input.onchange = event => {
@@ -193,6 +219,15 @@ document.addEventListener('keydown', event => { if (event.key === 'Escape') clos
 
 renderCatalog();
 saveCart();
-const initialPage = location.hash.slice(1);
-const _knownPages = ['cakes', 'gallery', 'cart', 'checkout', 'confirmation', 'admin', 'signup', 'login', 'profile', 'my-orders', 'auth-guard'];
-if (_knownPages.includes(initialPage)) goPage(initialPage);
+const _knownPages = ['cakes', 'gallery', 'cart', 'checkout', 'confirmation', 'admin', 'signup', 'login', 'profile', 'my-orders', 'auth-guard', 'reset-password', 'forgot-password', 'account'];
+const initialHash = location.hash.slice(1);
+const initialPage = initialHash.split('?')[0].split('&')[0];
+if (_knownPages.includes(initialPage)) goPage(initialHash || initialPage);
+
+window.addEventListener('hashchange', () => {
+	const raw = location.hash.slice(1);
+	const target = raw.split('?')[0].split('&')[0];
+	if (_knownPages.includes(target)) {
+		goPage(raw || target);
+	}
+});

@@ -130,6 +130,7 @@
             if (data.authenticated && data.user) {
                 setDisplayCache(data.user);
                 updateNavbar(data.user);
+                syncCartOnLoad();
             } else {
                 // Session gone — clear cache and show guest nav
                 clearDisplayCache();
@@ -179,6 +180,11 @@
         }
         clearDisplayCache();
         updateNavbar(null);
+        if (typeof window.setClientCart === 'function') {
+            window.setClientCart([]);
+        } else {
+            try { localStorage.removeItem('kukiCart'); } catch (_) {}
+        }
         _toast('You have been logged out. See you soon! 👋');
         if (typeof goPage === 'function') goPage('home');
     }
@@ -195,7 +201,7 @@
        Auth is verified via server session.
        ============================================================ */
 
-    const PROTECTED = ['profile', 'my-orders'];
+    const PROTECTED = ['profile', 'my-orders', 'account'];
 
     document.addEventListener('click', async (e) => {
         const link = e.target.closest('[data-page]');
@@ -216,7 +222,7 @@
             }
             // Authenticated — navigate, then populate
             if (typeof goPage === 'function') goPage(page);
-            if (page === 'profile')    setTimeout(populateProfilePage, 30);
+            if (page === 'profile' || page === 'account') setTimeout(populateProfilePage, 30);
             if (page === 'my-orders')  setTimeout(() => renderOrdersPage('all'), 30);
         } catch (err) {
             // Network error — deny access to be safe
@@ -252,6 +258,87 @@
                 if (typeof goPage === 'function') goPage('auth-guard');
             }
         };
+    }
+
+    /* ============================================================
+       PERSISTENT CART SYNCHRONIZATION (Database)
+       ============================================================ */
+
+    let _cartSyncTimer = null;
+
+    /**
+     * Called whenever cart is modified in site.js.
+     * If user is authenticated, debounces a save to MySQL via POST /api/cart.php.
+     */
+    window.syncCartWithServer = function (items) {
+        clearTimeout(_cartSyncTimer);
+        _cartSyncTimer = setTimeout(async () => {
+            try {
+                const session = await apiGet('api/check-session.php');
+                if (session && session.authenticated) {
+                    await apiPost('api/cart.php', { action: 'save', items });
+                }
+            } catch (err) {
+                // Resilient fallback to localStorage
+            }
+        }, 300);
+    };
+
+    /**
+     * Clear server-side cart when order is placed.
+     */
+    window.clearServerCart = async function () {
+        try {
+            await apiPost('api/cart.php', { action: 'clear' });
+        } catch (_) {}
+    };
+
+    /**
+     * Load authenticated user's cart from database on page load/init.
+     */
+    async function syncCartOnLoad() {
+        try {
+            const data = await apiGet('api/cart.php');
+            if (data && data.authenticated && Array.isArray(data.cart)) {
+                if (data.cart.length > 0) {
+                    if (typeof window.setClientCart === 'function') {
+                        window.setClientCart(data.cart);
+                    } else {
+                        localStorage.setItem('kukiCart', JSON.stringify(data.cart));
+                    }
+                } else {
+                    // If DB cart is empty, check if guest cart had items and save them to DB
+                    let local = [];
+                    try { local = JSON.parse(localStorage.getItem('kukiCart') || '[]'); } catch (_) {}
+                    if (local.length > 0) {
+                        await apiPost('api/cart.php', { action: 'save', items: local });
+                    }
+                }
+            }
+        } catch (err) {
+            console.warn('[KúkiCakes] Cart load sync warning:', err);
+        }
+    }
+
+    /**
+     * Merge guest cart with user's persistent DB cart on login.
+     */
+    async function mergeCartOnLogin() {
+        let guestCart = [];
+        try { guestCart = JSON.parse(localStorage.getItem('kukiCart') || '[]'); } catch (_) {}
+
+        try {
+            const res = await apiPost('api/cart.php', { action: 'merge', items: guestCart });
+            if (res && res.success && Array.isArray(res.cart)) {
+                if (typeof window.setClientCart === 'function') {
+                    window.setClientCart(res.cart);
+                } else {
+                    localStorage.setItem('kukiCart', JSON.stringify(res.cart));
+                }
+            }
+        } catch (err) {
+            console.warn('[KúkiCakes] Cart merge on login warning:', err);
+        }
     }
 
     /* ============================================================
@@ -380,6 +467,43 @@
        LOGIN FORM
        ============================================================ */
 
+    function showLoginForm() {
+        const loginSection  = document.getElementById('loginFormSection');
+        const forgotSection = document.getElementById('forgotPasswordSection');
+        const heroEyebrow   = document.getElementById('authHeroEyebrow');
+        const heroTitle     = document.getElementById('authHeroTitle');
+        const heroSubtext   = document.getElementById('authHeroSubtext');
+
+        if (loginSection) loginSection.hidden = false;
+        if (forgotSection) forgotSection.hidden = true;
+        if (heroEyebrow) heroEyebrow.textContent = 'Welcome back';
+        if (heroTitle) heroTitle.textContent = 'Log in to KúkiCakes.';
+        if (heroSubtext) heroSubtext.textContent = 'Access your saved orders, addresses, and custom cake inquiries.';
+    }
+
+    function showForgotPasswordForm() {
+        const loginSection  = document.getElementById('loginFormSection');
+        const forgotSection = document.getElementById('forgotPasswordSection');
+        const heroEyebrow   = document.getElementById('authHeroEyebrow');
+        const heroTitle     = document.getElementById('authHeroTitle');
+        const heroSubtext   = document.getElementById('authHeroSubtext');
+
+        if (loginSection) loginSection.hidden = true;
+        if (forgotSection) forgotSection.hidden = false;
+        if (heroEyebrow) heroEyebrow.textContent = 'Account Recovery';
+        if (heroTitle) heroTitle.textContent = 'Forgot Password.';
+        if (heroSubtext) heroSubtext.textContent = 'Enter your registered email address to receive password reset instructions.';
+
+        const fpEmail = document.getElementById('fp-email');
+        const liEmail = document.getElementById('li-email');
+        if (fpEmail) {
+            if (liEmail && liEmail.value.trim() && !fpEmail.value.trim()) {
+                fpEmail.value = liEmail.value.trim();
+            }
+            setTimeout(() => fpEmail.focus(), 80);
+        }
+    }
+
     function setupLoginForm() {
         const form = document.getElementById('loginForm');
         if (!form) return;
@@ -389,23 +513,103 @@
             _togglePasswordVisibility(this);
         });
 
-        // Forgot password (UI only — server-side reset not in scope)
-        document.getElementById('forgotPasswordBtn')?.addEventListener('click', () => {
-            const msg = document.getElementById('forgotMessage');
-            if (msg) msg.removeAttribute('hidden');
+        // Forgot password view toggle
+        document.getElementById('forgotPasswordBtn')?.addEventListener('click', (e) => {
+            e.preventDefault();
+            showForgotPasswordForm();
         });
 
-        document.getElementById('sendResetBtn')?.addEventListener('click', () => {
-            const emailVal = document.getElementById('li-email')?.value.trim();
+        document.getElementById('fpBackToLoginBtn')?.addEventListener('click', (e) => {
+            e.preventDefault();
+            showLoginForm();
+        });
+
+        // Dedicated Forgot Password form submission
+        const fpForm = document.getElementById('forgotPasswordForm');
+        fpForm?.addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const emailInput = document.getElementById('fp-email');
+            const errSpan    = document.getElementById('fp-email-err');
+            const submitBtn  = document.getElementById('fpSubmitBtn');
+            const statusBox  = document.getElementById('fp-status-box');
+
+            const emailVal = (emailInput?.value || '').trim().toLowerCase();
+            if (errSpan) errSpan.textContent = '';
+            if (statusBox) statusBox.hidden = true;
+
             if (!emailVal || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailVal)) {
-                _applyFieldState(
-                    document.getElementById('li-email'),
-                    document.getElementById('li-email-err'),
-                    'Please enter a valid email address first.'
-                );
+                if (errSpan) errSpan.textContent = 'Please enter a valid email address.';
+                emailInput?.focus();
                 return;
             }
-            _toast('If an account exists for that email, a reset link will be sent. 📧');
+
+            if (submitBtn) {
+                submitBtn.disabled = true;
+                submitBtn.textContent = 'Generating…';
+            }
+
+            try {
+                const res = await apiPost('api/forgot-password.php', { email: emailVal });
+                if (submitBtn) {
+                    submitBtn.disabled = false;
+                    submitBtn.textContent = 'Send Reset Link →';
+                }
+
+                if (res && res.success) {
+                    if (statusBox) {
+                        statusBox.hidden = false;
+                        if (res.account_found === false) {
+                            statusBox.style.background = '#fef2f2';
+                            statusBox.style.border = '1px solid #fecaca';
+                            statusBox.innerHTML = `
+                                <div style="color:var(--berry);font-weight:700;margin-bottom:4px;">Account Not Found</div>
+                                <div>No account is registered under "<strong>${_esc(emailVal)}</strong>".</div>
+                                <div style="margin-top:6px;font-size:12px;color:var(--muted);">
+                                    Please verify your email address, or <a href="#signup" data-page="signup" style="color:var(--berry);font-weight:700;">create an account →</a>
+                                </div>
+                            `;
+                        } else {
+                            statusBox.style.background = 'var(--peach-2)';
+                            statusBox.style.border = '1px solid var(--peach)';
+                            statusBox.innerHTML = `
+                                <div style="color:var(--forest,#2d6a4f);font-weight:700;margin-bottom:6px;">✓ Password reset instructions generated!</div>
+                                <div>Account: <strong>${_esc(emailVal)}</strong></div>
+                                <div style="color:var(--muted);font-size:12px;margin:8px 0;line-height:1.4;">
+                                    <strong>Notice:</strong> Email delivery is not configured on this server environment.<br>
+                                    Use the direct link below to proceed with setting your new password:
+                                </div>
+                                <a href="${res.reset_url}" id="fpGoResetBtn" class="btn btn-primary btn-sm" style="display:inline-block;text-decoration:none;margin-top:4px;">
+                                    Reset Password Now →
+                                </a>
+                            `;
+
+                            document.getElementById('fpGoResetBtn')?.addEventListener('click', (ev) => {
+                                ev.preventDefault();
+                                _activeResetToken = res.reset_token;
+                                if (typeof goPage === 'function') {
+                                    goPage(res.reset_url);
+                                }
+                                setTimeout(() => checkResetPasswordState(res.reset_token), 60);
+                            });
+                        }
+                    }
+                } else {
+                    if (statusBox) {
+                        statusBox.hidden = false;
+                        statusBox.innerHTML = `<div style="color:var(--berry);">${_esc(res?.message || 'Unable to generate reset link.')}</div>`;
+                    }
+                }
+            } catch (err) {
+                if (submitBtn) {
+                    submitBtn.disabled = false;
+                    submitBtn.textContent = 'Send Reset Link →';
+                }
+                if (statusBox) {
+                    statusBox.hidden = false;
+                    statusBox.innerHTML = '<div style="color:var(--berry);">Connection error. Please try again.</div>';
+                }
+            }
         });
 
         // Blur validation & input reset
@@ -440,6 +644,7 @@
                 if (data && data._status === 200 && data.success === true && data.user && data.user.customer_id) {
                     setDisplayCache(data.user);
                     updateNavbar(data.user);
+                    await mergeCartOnLogin();
                     maybeShowCartMergeBanner(data.user.name.split(' ')[0]);
 
                     if (typeof goPage === 'function') goPage('profile');
@@ -528,6 +733,7 @@
         } catch (err) {
             console.error('[KúkiCakes] Could not load profile:', err);
             _toast('Could not load profile. Please try again.');
+            if (typeof goPage === 'function') goPage('auth-guard');
         }
     }
 
@@ -1182,6 +1388,171 @@
     }
 
     /* ============================================================
+       RESET PASSWORD PAGE
+       ============================================================ */
+
+    let _activeResetToken = null;
+
+    function getResetToken() {
+        if (_activeResetToken) return _activeResetToken;
+        const searchParams = new URLSearchParams(window.location.search);
+        if (searchParams.get('token')) return searchParams.get('token');
+        const hash = window.location.hash;
+        const qIndex = hash.indexOf('?');
+        if (qIndex !== -1) {
+            const hashParams = new URLSearchParams(hash.slice(qIndex));
+            if (hashParams.get('token')) return hashParams.get('token');
+        }
+        return '';
+    }
+
+    async function checkResetPasswordState(tokenOverride) {
+        const page = document.getElementById('reset-password-page');
+        if (!page) return;
+
+        const checkingEl = document.getElementById('rp-checking');
+        const invalidEl  = document.getElementById('rp-invalid');
+        const successEl  = document.getElementById('rp-success');
+        const formEl     = document.getElementById('resetPasswordForm');
+        const errorDesc  = document.getElementById('rp-error-desc');
+        const tokenInput = document.getElementById('rp-token');
+        const emailEl    = document.getElementById('rp-user-email');
+
+        const token = tokenOverride || getResetToken();
+        if (token) _activeResetToken = token;
+
+        if (!token) {
+            if (checkingEl) checkingEl.hidden = true;
+            if (formEl) formEl.hidden = true;
+            if (successEl) successEl.hidden = true;
+            if (invalidEl) invalidEl.hidden = false;
+            if (errorDesc) errorDesc.textContent = 'No password reset token was provided. Please request a new link from the login page.';
+            return;
+        }
+
+        // Show checking spinner
+        if (checkingEl) checkingEl.hidden = false;
+        if (invalidEl) invalidEl.hidden = true;
+        if (formEl) formEl.hidden = true;
+        if (successEl) successEl.hidden = true;
+
+        try {
+            const data = await apiGet(`api/reset-password.php?token=${encodeURIComponent(token)}`);
+            if (checkingEl) checkingEl.hidden = true;
+
+            if (data && data._status === 200 && data.valid) {
+                if (tokenInput) tokenInput.value = token;
+                if (emailEl) emailEl.textContent = data.masked_email || 'your account';
+                if (formEl) formEl.hidden = false;
+            } else {
+                if (invalidEl) invalidEl.hidden = false;
+                if (errorDesc) errorDesc.textContent = data.message || 'This reset link is invalid, expired, or has already been used.';
+            }
+        } catch (err) {
+            if (checkingEl) checkingEl.hidden = true;
+            if (invalidEl) invalidEl.hidden = false;
+            if (errorDesc) errorDesc.textContent = 'Unable to verify reset link. Please check your internet connection.';
+        }
+    }
+
+    function setupResetPasswordPage() {
+        const form = document.getElementById('resetPasswordForm');
+        if (!form) return;
+
+        // Password show/hide toggles
+        form.querySelectorAll('.password-toggle').forEach(setupToggle);
+
+        // Live strength + requirements
+        const pwInput = document.getElementById('rp-password');
+        pwInput?.addEventListener('input', () => {
+            updateStrength(pwInput.value, 'rp-strength-fill', 'rp-strength-label');
+            updateReqs(pwInput.value, 'rp-req-len', 'rp-req-upper', 'rp-req-lower', 'rp-req-num');
+            const err = document.getElementById('rp-password-err');
+            if (err) err.textContent = '';
+        });
+
+        const confirmInput = document.getElementById('rp-confirm');
+        confirmInput?.addEventListener('input', () => {
+            const err = document.getElementById('rp-confirm-err');
+            if (err) err.textContent = '';
+        });
+
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const tokenVal   = document.getElementById('rp-token')?.value.trim() || _activeResetToken || getResetToken();
+            const pwVal      = document.getElementById('rp-password')?.value || '';
+            const confirmVal = document.getElementById('rp-confirm')?.value || '';
+
+            const pwErr      = document.getElementById('rp-password-err');
+            const confirmErr = document.getElementById('rp-confirm-err');
+
+            if (pwErr) pwErr.textContent = '';
+            if (confirmErr) confirmErr.textContent = '';
+
+            let hasError = false;
+            if (!tokenVal) {
+                _toast('Reset token is missing.');
+                hasError = true;
+            }
+            if (pwVal.length < 8) {
+                if (pwErr) pwErr.textContent = 'Password must be at least 8 characters.';
+                hasError = true;
+            } else if (!/[A-Z]/.test(pwVal)) {
+                if (pwErr) pwErr.textContent = 'Password must include at least one uppercase letter.';
+                hasError = true;
+            } else if (!/[0-9]/.test(pwVal)) {
+                if (pwErr) pwErr.textContent = 'Password must include at least one number.';
+                hasError = true;
+            }
+
+            if (pwVal !== confirmVal) {
+                if (confirmErr) confirmErr.textContent = 'Passwords do not match.';
+                hasError = true;
+            }
+
+            if (hasError) return;
+
+            const submitBtn = document.getElementById('resetSubmitBtn');
+            if (submitBtn) {
+                submitBtn.disabled = true;
+                submitBtn.textContent = 'Saving password…';
+            }
+
+            try {
+                const res = await apiPost('api/reset-password.php', {
+                    token: tokenVal,
+                    new_password: pwVal,
+                    confirm_password: confirmVal,
+                });
+
+                if (res && res._status === 200 && res.success) {
+                    form.hidden = true;
+                    _activeResetToken = null;
+                    const successEl = document.getElementById('rp-success');
+                    if (successEl) successEl.hidden = false;
+                    _toast('✓ ' + (res.message || 'Password reset successful!'));
+                    clearDisplayCache();
+                    updateNavbar(null);
+                } else {
+                    _toast(res?.message || 'Password reset failed.');
+                    if (pwErr) pwErr.textContent = res?.message || 'Password reset failed.';
+                    if (submitBtn) {
+                        submitBtn.disabled = false;
+                        submitBtn.textContent = 'Save New Password →';
+                    }
+                }
+            } catch (err) {
+                _toast('An error occurred. Please try again.');
+                if (submitBtn) {
+                    submitBtn.disabled = false;
+                    submitBtn.textContent = 'Save New Password →';
+                }
+            }
+        });
+    }
+
+    /* ============================================================
        INITIALIZATION
        ============================================================ */
 
@@ -1201,10 +1572,26 @@
         setupMyOrdersPage();
         setupCheckoutProtection();
         setupCartMergeDismiss();
+        setupResetPasswordPage();
 
-        // Handle direct deep-link to profile (e.g. hash #profile)
-        const hash = location.hash.slice(1);
-        if (hash === 'profile') setTimeout(populateProfilePage, 120);
+        // Handle direct deep-links
+        const hash = location.hash.slice(1).split('?')[0].split('&')[0];
+        if (hash === 'profile' || hash === 'account') populateProfilePage();
+        if (hash === 'forgot-password') setTimeout(showForgotPasswordForm, 100);
+        if (hash.startsWith('reset-password')) setTimeout(checkResetPasswordState, 120);
+
+        window.addEventListener('hashchange', () => {
+            const h = location.hash.slice(1).split('?')[0].split('&')[0];
+            if (h === 'profile' || h === 'account') {
+                populateProfilePage();
+            } else if (h === 'forgot-password') {
+                showForgotPasswordForm();
+            } else if (h === 'login') {
+                showLoginForm();
+            } else if (h.startsWith('reset-password')) {
+                setTimeout(checkResetPasswordState, 50);
+            }
+        });
     }
 
     initAuth();

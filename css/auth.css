@@ -25,7 +25,8 @@
 /* ----------------------------------------------------------------
    Utility
    ---------------------------------------------------------------- */
-.hidden {
+.hidden,
+[hidden] {
     display: none !important;
 }
 
@@ -263,15 +264,20 @@
     color: var(--ink);
     margin-bottom: 16px;
     display: flex;
+    flex-wrap: wrap;
     align-items: center;
     justify-content: space-between;
-    gap: 14px;
+    gap: 12px;
     animation: fade .25s ease;
 }
 
 .forgot-message p {
     margin: 0;
     line-height: 1.5;
+}
+
+.forgot-message a.btn {
+    text-decoration: none;
 }
 
 /* Auth link row ("Already have an account?") */
@@ -1272,4 +1278,21 @@
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 14px;
+}
+
+/* ----------------------------------------------------------------
+   Password Reset Spinner & State Styles
+   ---------------------------------------------------------------- */
+@keyframes kuki-spin {
+    to { transform: rotate(360deg); }
+}
+
+.kuki-spinner {
+    width: 36px;
+    height: 36px;
+    border: 3px solid var(--peach-2, #fde8e0);
+    border-top-color: var(--berry, #9b2226);
+    border-radius: 50%;
+    animation: kuki-spin 0.8s linear infinite;
+    margin: 0 auto 16px;
 }

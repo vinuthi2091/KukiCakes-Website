@@ -1,7 +1,7 @@
 (function () {
     'use strict';
 
-    const AUTH_PAGES = ['login', 'signup', 'profile', 'my-orders', 'auth-guard'];
+    const AUTH_PAGES = ['login', 'signup', 'profile', 'my-orders', 'auth-guard', 'reset-password'];
 
     // Holds any page the user tried to navigate to before components finished loading
     let _pendingPage = null;
@@ -15,8 +15,9 @@
         document.addEventListener('click', function earlyGuard(e) {
             const link = e.target.closest('[data-page]');
             if (!link) return;
-            const page = link.dataset.page;
-            if (AUTH_PAGES.includes(page) && !document.getElementById(`${page}-page`)) {
+            const page = link.getAttribute('data-page');
+            const targetId = page === 'account' ? 'profile-page' : `${page}-page`;
+            if ((AUTH_PAGES.includes(page) || page === 'account') && !document.getElementById(targetId)) {
                 // Auth page not in DOM yet — queue it and suppress site.js navigation
                 e.stopImmediatePropagation();
                 e.preventDefault();
@@ -60,6 +61,11 @@
         if (_pendingPage && typeof goPage === 'function') {
             goPage(_pendingPage);
             _pendingPage = null;
+        } else if (typeof goPage === 'function') {
+            const hashTarget = location.hash.slice(1).split('?')[0].split('&')[0];
+            if (AUTH_PAGES.includes(hashTarget) || hashTarget === 'account') {
+                goPage(hashTarget);
+            }
         }
 
         // Load auth.js AFTER components are in DOM so initAuth() finds all elements
