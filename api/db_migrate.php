@@ -115,11 +115,57 @@ if ($checkCol->fetchColumn() == 0) {
 $results[] = "✓ Table `user_cart_items` created (or already existed).";
 
 // ---------------------------------------------------------------
-// 5. Done
+// 5. Seed `cake` table from js/data.js if empty
 // ---------------------------------------------------------------
-echo "KúkiCakes — Auth DB Migration\n";
+$cakeCount = (int) $pdo->query("SELECT COUNT(*) FROM `cake`")->fetchColumn();
+if ($cakeCount === 0) {
+    $jsPath = __DIR__ . '/../js/data.js';
+    if (file_exists($jsPath)) {
+        $jsData = file_get_contents($jsPath);
+        preg_match('/const catalogProducts = \[(.*?)\];\s*const catalogGallery/s', $jsData, $matches);
+        if (!empty($matches[1])) {
+            preg_match_all('/\{\s*id:\s*(\d+),\s*name:\s*\'(.*?)\',\s*cat:\s*\'(.*?)\',\s*price:\s*(\d+),\s*badge:\s*\'(.*?)\',\s*img:\s*\'(.*?)\',\s*desc:\s*\'(.*?)\'\s*\}/s', $matches[1], $items, PREG_SET_ORDER);
+            $ins = $pdo->prepare('INSERT INTO `cake` (cake_id, cake_name, description, price, image, badge, availability)
+                VALUES (?, ?, ?, ?, ?, ?, 1)
+                ON DUPLICATE KEY UPDATE cake_name = VALUES(cake_name), price = VALUES(price), description = VALUES(description), image = VALUES(image), badge = VALUES(badge)');
+            foreach ($items as $item) {
+                $ins->execute([(int)$item[1], stripslashes($item[2]), stripslashes($item[7]), (float)$item[4], stripslashes($item[6]), stripslashes($item[5])]);
+            }
+            $results[] = "✓ Seeded " . count($items) . " products into `cake` table.";
+        }
+    }
+} else {
+    $results[] = "→ Table `cake` already contains $cakeCount products, skipped seeding.";
+}
+
+// ---------------------------------------------------------------
+// 6. Add payment-tracking columns to `orders` table
+// ---------------------------------------------------------------
+$orderPaymentCols = [
+    'payment_status'     => "ALTER TABLE `orders` ADD COLUMN `payment_status` ENUM('pending','paid','failed','cancelled','charged_back') NOT NULL DEFAULT 'pending' AFTER `payment_method`",
+    'payhere_payment_id' => "ALTER TABLE `orders` ADD COLUMN `payhere_payment_id` VARCHAR(50) DEFAULT NULL AFTER `payment_status`",
+];
+
+foreach ($orderPaymentCols as $col => $sql) {
+    $check = $pdo->prepare("SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS
+        WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'orders' AND COLUMN_NAME = ?");
+    $check->execute([$col]);
+    if ($check->fetchColumn() == 0) {
+        $pdo->exec($sql);
+        $results[] = "✓ Added column `orders`.`{$col}`";
+    } else {
+        $results[] = "→ Column `orders`.`{$col}` already exists, skipped.";
+    }
+}
+
+// ---------------------------------------------------------------
+// 7. Done
+// ---------------------------------------------------------------
+echo "KúkiCakes — Database Migration\n";
 echo str_repeat('=', 40) . "\n";
 foreach ($results as $r) {
     echo $r . "\n";
 }
 echo "\nMigration complete.\n";
+
+

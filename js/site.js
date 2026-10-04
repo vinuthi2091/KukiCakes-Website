@@ -195,22 +195,172 @@ $('#checkoutBtn').onclick = () => {
 	if (cart.length) goPage('checkout');
 	else showToast('Add a cake before checking out');
 };
-if ($('#checkoutForm')) $('#checkoutForm').onsubmit = event => {
+if ($('#checkoutForm')) $('#checkoutForm').onsubmit = async event => {
 	event.preventDefault();
-	if (!cart.length) { showToast('Add a cake before placing an order'); goPage('cart'); return; }
-	const total = cart.reduce((sum, item) => sum + item.price * item.qty, 0) + 500;
-	const order = { number: `KC${Math.floor(10000 + Math.random() * 90000)}`, total };
-	localStorage.setItem('kukiLastOrder', JSON.stringify(order));
-	cart = [];
-	saveCart();
-	if (typeof window.clearServerCart === 'function') {
-		window.clearServerCart();
+	if (!cart.length) {
+		showToast('Add a cake before placing an order');
+		goPage('cart');
+		return;
 	}
-	goPage('confirmation');
+
+	const form = $('#checkoutForm');
+	const submitBtn = form.querySelector('.checkout-submit') || form.querySelector('button[type="submit"]');
+	const originalBtnHtml = submitBtn ? submitBtn.innerHTML : 'Place order / Pay now <span>→</span>';
+
+	const fullName            = ($('#checkoutName')?.value || '').trim();
+	const phoneNo             = ($('#checkoutPhone')?.value || '').trim();
+	const email               = ($('#checkoutEmail')?.value || '').trim();
+	const deliveryAddress     = ($('#deliveryAddress')?.value || '').trim();
+	const deliveryDate        = ($('#deliveryDate')?.value || '').trim();
+	const deliveryTimeSlot    = ($('#deliveryTime')?.value || '').trim();
+	const specialInstructions = ($('#deliveryNote')?.value || '').trim();
+	const paymentMethodEl     = document.querySelector('input[name="payment"]:checked');
+	const paymentMethod       = paymentMethodEl ? paymentMethodEl.value : 'card';
+
+	if (!fullName || !phoneNo || !email || !deliveryAddress || !deliveryDate || !deliveryTimeSlot) {
+		showToast('Please fill in all required delivery details.');
+		return;
+	}
+
+	if (submitBtn) {
+		submitBtn.disabled = true;
+		submitBtn.innerHTML = 'Processing order...';
+	}
+
+	try {
+		// Sync local cart to server prior to order creation
+		if (typeof window.syncCartWithServer === 'function') {
+			try { await window.syncCartWithServer(cart); } catch (_) {}
+		}
+
+		const response = await fetch('api/create-order.php', {
+			method: 'POST',
+			headers: {
+				'Content-Type': 'application/json',
+				'Accept': 'application/json'
+			},
+			body: JSON.stringify({
+				full_name: fullName,
+				phone_no: phoneNo,
+				email: email,
+				delivery_address: deliveryAddress,
+				delivery_date: deliveryDate,
+				delivery_time_slot: deliveryTimeSlot,
+				special_instructions: specialInstructions,
+				payment_method: paymentMethod
+			})
+		});
+
+		const data = await response.json();
+
+		if (!response.ok || !data.success) {
+			const errorMsg = data.message || (data.errors ? Object.values(data.errors).join(', ') : 'Failed to place order.');
+			showToast(errorMsg);
+			if (response.status === 401) {
+				goPage('auth-guard');
+			}
+			if (submitBtn) {
+				submitBtn.disabled = false;
+				submitBtn.innerHTML = originalBtnHtml;
+			}
+			return;
+		}
+
+		const order = data.order;
+
+		// Cash on delivery or Bank transfer: complete order and proceed directly to confirmation
+		if (paymentMethod === 'cash' || paymentMethod === 'transfer') {
+			localStorage.setItem('kukiLastOrder', JSON.stringify({
+				number: order.order_number,
+				total: order.total,
+				subtotal: order.subtotal,
+				delivery: order.delivery_fee,
+				method: paymentMethod
+			}));
+
+			// Clear cart only after successful order placement
+			cart = [];
+			saveCart();
+			if (typeof window.clearServerCart === 'function') {
+				window.clearServerCart();
+			}
+
+			if (submitBtn) {
+				submitBtn.disabled = false;
+				submitBtn.innerHTML = originalBtnHtml;
+			}
+			goPage('confirmation');
+			return;
+		}
+
+		// Credit / Debit card: Launch official PayHere Sandbox payment interface
+		if (paymentMethod === 'card') {
+			const payhereParams = data.payhere;
+			if (!payhereParams || typeof window.payhere === 'undefined') {
+				showToast('PayHere payment gateway is currently unavailable. Please try again.');
+				if (submitBtn) {
+					submitBtn.disabled = false;
+					submitBtn.innerHTML = originalBtnHtml;
+				}
+				return;
+			}
+
+			// Configure PayHere JavaScript SDK callbacks
+			window.payhere.onCompleted = function onCompleted(orderId) {
+				showToast('Payment completed successfully!');
+				localStorage.setItem('kukiLastOrder', JSON.stringify({
+					number: order.order_number,
+					total: order.total,
+					subtotal: order.subtotal,
+					delivery: order.delivery_fee,
+					method: 'card',
+					paid: true
+				}));
+
+				// Clear cart only after successful payment state is established
+				cart = [];
+				saveCart();
+				if (typeof window.clearServerCart === 'function') {
+					window.clearServerCart();
+				}
+
+				if (submitBtn) {
+					submitBtn.disabled = false;
+					submitBtn.innerHTML = originalBtnHtml;
+				}
+				goPage('confirmation');
+			};
+
+			window.payhere.onDismissed = function onDismissed() {
+				// Keep user on checkout. Do not delete order, do not clear cart, do not falsely show success.
+				showToast('Payment window closed. You can retry your payment anytime.');
+				if (submitBtn) {
+					submitBtn.disabled = false;
+					submitBtn.innerHTML = originalBtnHtml;
+				}
+			};
+
+			window.payhere.onError = function onError(error) {
+				// Keep user on checkout. Show friendly error and do not mark as paid.
+				showToast('Payment error: ' + (error || 'Transaction could not be completed.'));
+				if (submitBtn) {
+					submitBtn.disabled = false;
+					submitBtn.innerHTML = originalBtnHtml;
+				}
+			};
+
+			// Open official PayHere modal
+			window.payhere.startPayment(payhereParams);
+		}
+
+	} catch (err) {
+		showToast('Network error while placing order. Please try again.');
+		if (submitBtn) {
+			submitBtn.disabled = false;
+			submitBtn.innerHTML = originalBtnHtml;
+		}
+	}
 };
-document.querySelectorAll('input[name="payment"]').forEach(input => input.onchange = event => {
-	if ($('#cardDetails')) $('#cardDetails').hidden = event.target.value !== 'card';
-});
 if ($('#newsletter')) $('#newsletter').onsubmit = event => { event.preventDefault(); showToast('You are on the sweet list!'); };
 document.querySelectorAll('.filter[data-filter]').forEach(button => button.onclick = () => { document.querySelectorAll('.filter[data-filter]').forEach(item => item.classList.remove('active')); button.classList.add('active'); renderAllProducts(); });
 if ($('#priceSort')) $('#priceSort').onchange = renderAllProducts;
